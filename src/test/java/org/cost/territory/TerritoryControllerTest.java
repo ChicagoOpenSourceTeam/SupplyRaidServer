@@ -18,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -30,18 +32,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TerritoryControllerTest {
 
     private MockMvc mockMvc;
+    private TerritoryRepository mockRepository;
 
     @Before
     public void setup() {
-        TerritoryRepository mockRepository = mock(TerritoryRepository.class);
+        mockRepository = mock(TerritoryRepository.class);
         TerritoryController territoryController = new TerritoryController(mockRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(territoryController).build();
-
-        when(mockRepository.findOne(anyLong())).thenReturn(Territory.builder().name("Rustic Location").build());
     }
 
     @Test
     public void getTerritory_returnsTerritoryObject() throws Exception {
+        when(mockRepository.findOne(anyLong())).thenReturn(Territory.builder().name("Rustic Location").build());
+
         String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -49,5 +52,34 @@ public class TerritoryControllerTest {
         JSONAssert.assertEquals("{\n" +
                 "  \"name\": \"Rustic Location\"\n" +
                 "}", response, JSONCompareMode.LENIENT);
+    }
+
+    @Test
+    public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
+        when(mockRepository.findAll()).thenReturn(Arrays.asList(Territory.builder().name("Location 1").territoryId(1L).build(),
+                                                                Territory.builder().name("Location 2").territoryId(2L).build()));
+
+        String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        System.out.println("response = " + response);
+
+        JSONAssert.assertEquals("[\n" +
+                "  {\"name\": \"Location 1\",\n" +
+                "  \"links\": [\n" +
+                "    {\n" +
+                "      \"rel\": \"self\",\n" +
+                "      \"href\": \"http://localhost/territories/1\"\n" +
+                "    }\n" +
+                "  ]},\n" +
+                "  {\"name\": \"Location 2\",\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/territories/2\"\n" +
+                "      }\n" +
+                "    ]}\n" +
+                "]", response, JSONCompareMode.LENIENT);
     }
 }
