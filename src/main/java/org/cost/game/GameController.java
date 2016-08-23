@@ -22,7 +22,9 @@ public class GameController {
     @RequestMapping(path = "/game", method = RequestMethod.POST)
     public ResponseEntity createGame(@RequestBody CreateGameRequest createGameRequest) {
         if (!gameRepository.exists(createGameRequest.getGameName())) {
-            gameRepository.save(new Game(createGameRequest.getGameName()));
+            Game game = new Game();
+            game.setGameName(createGameRequest.getGameName());
+            gameRepository.save(game);
             return new ResponseEntity(HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.CONFLICT);

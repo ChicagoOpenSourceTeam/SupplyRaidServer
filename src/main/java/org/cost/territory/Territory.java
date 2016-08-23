@@ -15,7 +15,7 @@ import javax.persistence.Id;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class Territory extends ResourceSupport {
+class  Territory extends ResourceSupport {
     @JsonProperty
     private String name;
 
