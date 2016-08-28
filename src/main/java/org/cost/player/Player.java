@@ -1,5 +1,6 @@
 package org.cost.player;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.Entity;
@@ -14,10 +15,20 @@ import javax.persistence.Id;
 @Builder
 @EqualsAndHashCode
 public class Player {
+    private int playerNumber;
+    private String name;
+
     private String gameName;
-    private String playerName;
+
+    @JsonIgnore
+    public String getGameName() {
+        return gameName;
+    }
 
     @Id
     @GeneratedValue
     private Long playerId;
+
+    @JsonIgnore
+    public Long getPlayerId() { return playerId; }
 }
