@@ -132,4 +132,52 @@ public class PlayerControllerTest {
                 .andExpect(status().isNotFound());
 
     }
+
+    @Test
+    public void getPlayers_returnsListOfPlayersInGame() throws Exception {
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        ArrayList<Player> players = new ArrayList<>();
+        players.add(Player.builder().playerNumber(3).name("eidlyn").build());
+        players.add(Player.builder().playerNumber(1).name("zxmbies").build());
+        players.add(Player.builder().playerNumber(2).name("qxc").build());
+        when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
+
+        String actualResponse = mockMvc.perform(get("/players").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        JSONAssert.assertEquals("[\n" +
+                "  {\"name\": \"zxmbies\",\n" +
+                "    \"playerNumber\": 1,\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/players/1\"\n" +
+                "      }\n" +
+                "    ]},\n" +
+                "  {\"name\": \"qxc\",\n" +
+                "    \"playerNumber\": 2,\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/players/2\"\n" +
+                "      }\n" +
+                "    ]},\n" +
+                "  {\"name\": \"eidlyn\",\n" +
+                "    \"playerNumber\": 3,\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/players/3\"\n" +
+                "      }\n" +
+                "    ]}\n" +
+                "]", actualResponse, JSONCompareMode.LENIENT);
+
+    }
+
+    @Test
+    public void getPlayers_returns404_whenNotInGame() throws Exception {
+        mockMvc.perform(get("/players").contentType(MediaType.APPLICATION_JSON).session(new MockHttpSession()))
+                .andExpect(status().isNotFound());
+    }
 }

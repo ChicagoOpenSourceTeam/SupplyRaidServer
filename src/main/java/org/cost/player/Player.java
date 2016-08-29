@@ -2,6 +2,7 @@ package org.cost.player;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.springframework.hateoas.ResourceSupport;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,7 +15,7 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode
-public class Player {
+public class Player extends ResourceSupport {
     private int playerNumber;
     private String name;
 

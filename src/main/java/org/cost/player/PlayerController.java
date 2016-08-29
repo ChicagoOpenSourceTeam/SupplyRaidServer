@@ -11,8 +11,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 public class PlayerController {
@@ -61,6 +65,23 @@ public class PlayerController {
         } catch (NoSuchElementException e) {
             throw new Exceptions.ResourceNotFoundException();
         }
+    }
+
+    @RequestMapping(path = "/players", method = RequestMethod.GET)
+    public List<Player> getPlayers(HttpSession session) {
+        List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(SESSION_GAME_NAME_FIELD));
+        if (players.isEmpty()) {
+            throw new Exceptions.ResourceNotFoundException();
+        }
+
+        players
+                .stream()
+                .forEach(player -> player.add(
+                        linkTo(
+                                methodOn(PlayerController.class).getPlayer(player.getPlayerNumber(), session))
+                                .withSelfRel())
+                );
+        return players;
     }
 
     @Builder
