@@ -42,15 +42,35 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getTerritory_returnsTerritoryObject() throws Exception {
-        when(mockRepository.findOne(anyLong())).thenReturn(Territory.builder().name("Rustic Location").build());
+    public void getTerritory_returnsTerritoryResponseObject() throws Exception {
+        when(mockRepository.findOne(4L)).thenReturn(Territory.builder().name("Cliffs 1").north(null).east(5L).south(13L).west(null).build());
+        when(mockRepository.findOne(5L)).thenReturn(Territory.builder().name("Cliffs 2").territoryId(5L).build());
+        when(mockRepository.findOne(13L)).thenReturn(Territory.builder().name("Cliffs 4").territoryId(13L).build());
 
-        String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON))
+        String response = mockMvc.perform(get("/territories/4").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
+        System.out.println("response = " + response);
+
         JSONAssert.assertEquals("{\n" +
-                "  \"name\": \"Rustic Location\"\n" +
+                "  \"name\": \"Cliffs 1\",\n" +
+                "  \"north\": null,\n" +
+                "  \"south\": {\n" +
+                "    \"name\": \"Cliffs 4\",\n" +
+                "    \"links\": [{\n" +
+                "      \"rel\": \"self\",\n" +
+                "      \"href\": \"http://localhost/territories/13\"\n" +
+                "    }]\n" +
+                "  },\n" +
+                "  \"east\": {\n" +
+                "    \"name\": \"Cliffs 2\",\n" +
+                "    \"links\": [{\n" +
+                "      \"rel\": \"self\",\n" +
+                "      \"href\": \"http://localhost/territories/5\"\n" +
+                "    }]\n" +
+                "  },\n" +
+                "  \"west\": null\n" +
                 "}", response, JSONCompareMode.LENIENT);
     }
 

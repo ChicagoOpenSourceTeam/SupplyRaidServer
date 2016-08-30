@@ -16,12 +16,16 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @AllArgsConstructor
 class  Territory extends ResourceSupport {
-    @JsonProperty
     private String name;
 
     @Id
     @GeneratedValue
     private Long territoryId;
+
+    private Long north;
+    private Long east;
+    private Long south;
+    private Long west;
 
     @JsonIgnore
     public Long getTerritoryId() {
