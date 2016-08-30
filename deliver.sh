@@ -1,19 +1,19 @@
 #!/bin/sh
 
-if [ -z "git pull origin master != 0" ]; then
+if [ "$(git pull origin master)" ]; then
 	echo Failed to pull
 	exit -1
 fi
 
-if [ -z "./gradlew test != 0" ]; then
+if [ "$(./gradlew test)" ]; then
 	echo Please fix tests before delivering
 	exit -1
 fi
-if [ -z "git push origin master != 0" ]; then
+if [ "$(git push origin master)" ]; then
 	echo Failed to push git repository
 	exit -1
 fi
-if [ -z "git push heroku master != 0" ]; then
+if [ "$(git push heroku master)" ]; then
 	echo Failed to deploy to heroku
 	exit -1;
 fi
