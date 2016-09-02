@@ -75,6 +75,14 @@ public class TerritoryControllerTest {
     }
 
     @Test
+    public void getTerritory_returns404_whenTerritoryOutsideRange() throws Exception {
+        when(mockRepository.getOne(-1L)).thenReturn(null);
+
+        mockMvc.perform(get("/territories/-1").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
         when(mockRepository.findAll()).thenReturn(Arrays.asList(Territory.builder().name("Location 1").territoryId(1L).build(),
                                                                 Territory.builder().name("Location 2").territoryId(2L).build()));
