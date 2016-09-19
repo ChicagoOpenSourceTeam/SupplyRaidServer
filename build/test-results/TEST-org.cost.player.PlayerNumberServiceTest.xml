@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.cost.player.PlayerNumberServiceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2016-09-19T15:23:06" hostname="laptop-asus" time="0.026">
+  <properties/>
+  <testcase name="getNumberOfPlayersInGame_withListWithNonNullElements_returnsNumberOfNonNullElements" classname="org.cost.player.PlayerNumberServiceTest" time="0.02"/>
+  <testcase name="getNumberOfPlayersInGame_withListWithOneNullElement_returnsZero" classname="org.cost.player.PlayerNumberServiceTest" time="0.0"/>
+  <testcase name="getNextPlayerNumber_returnsNextPlayerNumberForAllAvailableNumbers" classname="org.cost.player.PlayerNumberServiceTest" time="0.002"/>
+  <testcase name="getNextPlayerNuber_returnsNegativeNumberForPlayerGreaterThanMaxPlayers" classname="org.cost.player.PlayerNumberServiceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

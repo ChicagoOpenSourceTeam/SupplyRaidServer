@@ -2,11 +2,10 @@ package org.cost.player;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.cost.game.Game;
 import org.springframework.hateoas.ResourceSupport;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -19,12 +18,9 @@ public class Player extends ResourceSupport {
     private int playerNumber;
     private String name;
 
-    private String gameName;
-
-    @JsonIgnore
-    public String getGameName() {
-        return gameName;
-    }
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="game_name", nullable = false)
+    private Game game;
 
     @Id
     @GeneratedValue

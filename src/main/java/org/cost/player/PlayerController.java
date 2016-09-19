@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.cost.Exceptions;
+import org.cost.game.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -25,11 +25,13 @@ public class PlayerController {
     public static final String SESSION_GAME_NAME_FIELD = "game_name";
     private PlayerRepository playerRepository;
     private PlayerNumberService playerNumberService;
+    private GameRepository gameRepository;
 
     @Autowired
-    public PlayerController(PlayerRepository gameRepository, PlayerNumberService playerNumberService) {
-        this.playerRepository = gameRepository;
+    public PlayerController(PlayerRepository playerRepository, PlayerNumberService playerNumberService, GameRepository gameRepository) {
+        this.playerRepository = playerRepository;
         this.playerNumberService = playerNumberService;
+        this.gameRepository = gameRepository;
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
@@ -44,7 +46,7 @@ public class PlayerController {
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
         playerRepository.save(Player.builder()
-                .gameName(createPlayerRequest.getGameName())
+                .game(gameRepository.findOne(createPlayerRequest.getGameName()))
                 .name(createPlayerRequest.getPlayerName())
                 .playerNumber(playerNumberService.getNextPlayerNumber(playerNumberService.getNumberOfPlayersInGame(players)))
                 .build());

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class org.cost.territory.TerritoryControllerTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class org.cost.territory.TerritoryControllerTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/org.cost.territory.html">org.cost.territory</a> &gt; TerritoryControllerTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">3</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.193s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">getTerritories_returnsListOfTerritoriesWithLinks</td>
+<td>0.099s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getTerritory_returns404_whenTerritoryOutsideRange</td>
+<td>0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getTerritory_returnsTerritoryResponseObject</td>
+<td>0.050s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2016-09-19 10:23:26.859  INFO 580 --- [    Test worker] o.s.t.c.s.DefaultTestContextBootstrapper : Neither @ContextConfiguration nor @ContextHierarchy found for test class [org.cost.territory.TerritoryControllerTest], using DelegatingSmartContextLoader
+2016-09-19 10:23:26.860  INFO 580 --- [    Test worker] o.s.t.c.support.AbstractContextLoader    : Could not detect default resource locations for test class [org.cost.territory.TerritoryControllerTest]: no resource found for suffixes {-context.xml}.
+2016-09-19 10:23:26.860  INFO 580 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.cost.territory.TerritoryControllerTest]: TerritoryControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2016-09-19 10:23:26.870  INFO 580 --- [    Test worker] o.s.t.c.s.DefaultTestContextBootstrapper : Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.boot.test.autoconfigure.AutoConfigureReportTestExecutionListener, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener]
+2016-09-19 10:23:26.872  INFO 580 --- [    Test worker] o.s.t.c.s.DefaultTestContextBootstrapper : Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@ca2ed3a, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@6f14fb05, org.springframework.boot.test.autoconfigure.AutoConfigureReportTestExecutionListener@7f9b2909, org.springframework.test.context.support.DependencyInjectionTestExecutionListener@6be958b4, org.springframework.test.context.support.DirtiesContextTestExecutionListener@70b9b3ce, org.springframework.test.context.transaction.TransactionalTestExecutionListener@38bda20f, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@1e480770, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@3fc5c0f5, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@25f2300, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@57a7449e, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@90aaa9d]
+2016-09-19 10:23:26.875  INFO 580 --- [    Test worker] o.s.c.support.GenericApplicationContext  : Refreshing org.springframework.context.support.GenericApplicationContext@63e56619: startup date [Mon Sep 19 10:23:26 CDT 2016]; root of context hierarchy
+2016-09-19 10:23:26.934  INFO 580 --- [    Test worker] ilder$StaticRequestMappingHandlerMapping : Mapped &quot;{[/territories/{territoryId}],methods=[GET]}&quot; onto public org.cost.territory.TerritoryController$TerritoryResponse org.cost.territory.TerritoryController.getTerritory(java.lang.Long)
+2016-09-19 10:23:26.934  INFO 580 --- [    Test worker] ilder$StaticRequestMappingHandlerMapping : Mapped &quot;{[/territories],methods=[GET]}&quot; onto public java.util.List&lt;org.cost.territory.Territory&gt; org.cost.territory.TerritoryController.getTerritories()
+2016-09-19 10:23:26.961  INFO 580 --- [    Test worker] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.test.web.servlet.setup.StubWebApplicationContext@695a14c8
+2016-09-19 10:23:26.972  INFO 580 --- [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring FrameworkServlet ''
+2016-09-19 10:23:26.972  INFO 580 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : FrameworkServlet '': initialization started
+2016-09-19 10:23:26.973  INFO 580 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : FrameworkServlet '': initialization completed in 0 ms
+response = [{&quot;name&quot;:&quot;Location 1&quot;,&quot;north&quot;:null,&quot;east&quot;:null,&quot;south&quot;:null,&quot;west&quot;:null,&quot;links&quot;:[{&quot;rel&quot;:&quot;self&quot;,&quot;href&quot;:&quot;http://localhost/territories/1&quot;}]},{&quot;name&quot;:&quot;Location 2&quot;,&quot;north&quot;:null,&quot;east&quot;:null,&quot;south&quot;:null,&quot;west&quot;:null,&quot;links&quot;:[{&quot;rel&quot;:&quot;self&quot;,&quot;href&quot;:&quot;http://localhost/territories/2&quot;}]}]
+2016-09-19 10:23:27.014  INFO 580 --- [    Test worker] ilder$StaticRequestMappingHandlerMapping : Mapped &quot;{[/territories/{territoryId}],methods=[GET]}&quot; onto public org.cost.territory.TerritoryController$TerritoryResponse org.cost.territory.TerritoryController.getTerritory(java.lang.Long)
+2016-09-19 10:23:27.015  INFO 580 --- [    Test worker] ilder$StaticRequestMappingHandlerMapping : Mapped &quot;{[/territories],methods=[GET]}&quot; onto public java.util.List&lt;org.cost.territory.Territory&gt; org.cost.territory.TerritoryController.getTerritories()
+2016-09-19 10:23:27.041  INFO 580 --- [    Test worker] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.test.web.servlet.setup.StubWebApplicationContext@2c553214
+2016-09-19 10:23:27.047  INFO 580 --- [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring FrameworkServlet ''
+2016-09-19 10:23:27.048  INFO 580 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : FrameworkServlet '': initialization started
+2016-09-19 10:23:27.048  INFO 580 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : FrameworkServlet '': initialization completed in 0 ms
+response = {&quot;name&quot;:&quot;Cliffs 1&quot;,&quot;north&quot;:null,&quot;south&quot;:{&quot;name&quot;:&quot;Cliffs 4&quot;,&quot;links&quot;:[{&quot;rel&quot;:&quot;self&quot;,&quot;href&quot;:&quot;http://localhost/territories/13&quot;}]},&quot;east&quot;:{&quot;name&quot;:&quot;Cliffs 2&quot;,&quot;links&quot;:[{&quot;rel&quot;:&quot;self&quot;,&quot;href&quot;:&quot;http://localhost/territories/5&quot;}]},&quot;west&quot;:null}
+2016-09-19 10:23:27.067  INFO 580 --- [    Test worker] ilder$StaticRequestMappingHandlerMapping : Mapped &quot;{[/territories/{territoryId}],methods=[GET]}&quot; onto public org.cost.territory.TerritoryController$TerritoryResponse org.cost.territory.TerritoryController.getTerritory(java.lang.Long)
+2016-09-19 10:23:27.067  INFO 580 --- [    Test worker] ilder$StaticRequestMappingHandlerMapping : Mapped &quot;{[/territories],methods=[GET]}&quot; onto public java.util.List&lt;org.cost.territory.Territory&gt; org.cost.territory.TerritoryController.getTerritories()
+2016-09-19 10:23:27.089  INFO 580 --- [    Test worker] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.test.web.servlet.setup.StubWebApplicationContext@42533ccb
+2016-09-19 10:23:27.096  INFO 580 --- [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring FrameworkServlet ''
+2016-09-19 10:23:27.096  INFO 580 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : FrameworkServlet '': initialization started
+2016-09-19 10:23:27.096  INFO 580 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : FrameworkServlet '': initialization completed in 0 ms
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 2.13</a> at Sep 19, 2016 10:23:27 AM</p>
+</div>
+</div>
+</body>
+</html>

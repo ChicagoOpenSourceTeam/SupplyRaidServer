@@ -2,6 +2,8 @@ package org.cost.player;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.cost.game.Game;
+import org.cost.game.GameRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -27,12 +29,14 @@ public class PlayerControllerTest {
     private PlayerRepository mockRepository;
     private PlayerController playerController;
     private PlayerNumberService mockPlayerNumberService;
+    private GameRepository mockGameRepository;
 
     @Before
     public void setup() {
         mockRepository = mock(PlayerRepository.class);
         mockPlayerNumberService = mock(PlayerNumberService.class);
-        playerController = new PlayerController(mockRepository, mockPlayerNumberService);
+        mockGameRepository = mock(GameRepository.class);
+        playerController = new PlayerController(mockRepository, mockPlayerNumberService, mockGameRepository);
 
         mockMvc = MockMvcBuilders.standaloneSetup(playerController).build();
     }
@@ -49,7 +53,9 @@ public class PlayerControllerTest {
 
         Player expectedPlayer = new Player();
         expectedPlayer.setName("zxmbies");
-        expectedPlayer.setGameName("Excalibur");
+        Game game = new Game();
+        game.setGameName("Excalibur");
+        expectedPlayer.setGame(game);
         expectedPlayer.setPlayerNumber(999);
         verify(mockRepository).save(expectedPlayer);
     }
@@ -95,6 +101,7 @@ public class PlayerControllerTest {
     }
 
     private String getPostRequestContentString() throws JsonProcessingException {
+        when(mockGameRepository.findOne("zxmbies")).thenReturn(new Game());
         PlayerController.CreatePlayerRequest playerRequest = PlayerController.CreatePlayerRequest.builder().gameName("Excalibur").playerName("zxmbies").build();
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(playerRequest);

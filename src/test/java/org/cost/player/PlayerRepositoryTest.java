@@ -47,14 +47,14 @@ public class PlayerRepositoryTest {
 
         List<Player> players = playerRepository.findPlayersByGameName("Excalibur");
 
-        assertThat(players.get(0).getGameName()).isEqualTo("Excalibur");
+        assertThat(players.get(0).getGame()).isEqualTo("Excalibur");
         assertThat(players.get(0).getName()).isEqualTo("zxmbies");
     }
 
     private void createPlayerZxmbiesInExcalibur() {
         Player player = new Player();
         player.setName("zxmbies");
-        player.setGameName("Excalibur");
+
         playerRepository.save(player);
     }
 

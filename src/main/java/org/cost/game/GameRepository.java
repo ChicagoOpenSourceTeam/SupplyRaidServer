@@ -6,6 +6,4 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, String> {
-
-    boolean deleteByGameName(String gameName);
 }

@@ -1,9 +1,9 @@
 package org.cost.game;
 
 import lombok.*;
+import org.cost.player.Player;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.ConvertGroup;
 import java.util.ArrayList;
@@ -18,4 +18,7 @@ public class Game {
     @Id
     @NotNull
     private String gameName;
+
+    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "game")
+    private List<Player> players;
 }
