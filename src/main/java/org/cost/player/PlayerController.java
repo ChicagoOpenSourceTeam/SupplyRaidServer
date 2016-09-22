@@ -35,14 +35,11 @@ public class PlayerController {
     @RequestMapping(path = "/players", method = RequestMethod.POST)
     public ResponseEntity createPlayerForGame(@RequestBody CreatePlayerRequest createPlayerRequest, HttpSession httpSession) {
         List<Player> players = playerRepository.findPlayersByGameName(createPlayerRequest.getGameName()); //will return one null if no players in game
-        if (players.isEmpty()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-        if (players.size() >= MAX_PLAYERS_ALLOWED_IN_GAME || players.stream()
-                .filter(player -> player != null)
-                .anyMatch(player -> player.getName().equals(createPlayerRequest.getPlayerName()))) {
-            return new ResponseEntity(HttpStatus.CONFLICT);
-        }
+        String playerName = createPlayerRequest.getPlayerName();
+
+        ResponseEntity gameJoinError = findGameJoinError(players, playerName);
+        if (gameJoinError != null) { return gameJoinError; }
+
         playerRepository.save(Player.builder()
                 .gameName(createPlayerRequest.getGameName())
                 .name(createPlayerRequest.getPlayerName())
@@ -52,16 +49,27 @@ public class PlayerController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
+    private ResponseEntity findGameJoinError(List<Player> players, String playerName) {
+        if (players.isEmpty()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+        if (players.size() >= MAX_PLAYERS_ALLOWED_IN_GAME || players.stream()
+                .filter(player -> player != null)
+                .anyMatch(player -> player.getName().equals(playerName))) {
+            return new ResponseEntity(HttpStatus.CONFLICT);
+        }
+        return null;
+    }
+
 
     @RequestMapping(path = "/players/{playerNumber}", method = RequestMethod.GET)
     public Player getPlayer(@PathVariable int playerNumber, HttpSession session) {
         List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(SESSION_GAME_NAME_FIELD));
         try {
-            Player player = players.stream()
+            return players.stream()
                     .filter(p -> p.getPlayerNumber() == playerNumber)
                     .findFirst()
                     .get();
-            return player;
         } catch (NoSuchElementException e) {
             throw new Exceptions.ResourceNotFoundException();
         }
