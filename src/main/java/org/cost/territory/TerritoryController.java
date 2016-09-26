@@ -1,10 +1,12 @@
 package org.cost.territory;
 
 import lombok.*;
+
 import org.cost.game.GameController;
 import org.cost.game.GameRepository;
 import org.cost.player.PlayerController;
 import org.cost.player.PlayerRepository;
+import org.cost.Exceptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +41,10 @@ class TerritoryController {
     @RequestMapping(path = "territories/{territoryId}", method = RequestMethod.GET)
     public TerritoryResponse getTerritory(@PathVariable("territoryId") Long territoryId, HttpSession session) {
         Territory requestedTerritory = territoryRepository.findOne(territoryId);
+
+        if (requestedTerritory == null) {
+            throw new Exceptions.ResourceNotFoundException();
+        }
 
         TerritoryResponse.TerritoryResponseBuilder builder = TerritoryResponse.builder().name(requestedTerritory.getName());
 

@@ -1,0 +1,1 @@
+ALTER TABLE Territory ADD supply INT DEFAULT 0 AFTER name;
