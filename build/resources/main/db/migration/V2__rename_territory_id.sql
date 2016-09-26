@@ -1,1 +1,0 @@
-ALTER TABLE Territory CHANGE id territory_id BIGINT;
