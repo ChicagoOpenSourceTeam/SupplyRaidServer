@@ -17,7 +17,7 @@ import javax.persistence.Id;
 @AllArgsConstructor
 class  Territory extends ResourceSupport {
     private String name;
-
+    private int supply;
     @Id
     @GeneratedValue
     private Long territoryId;
