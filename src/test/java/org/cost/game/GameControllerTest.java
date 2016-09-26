@@ -1,15 +1,22 @@
 package org.cost.game;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.cost.player.Player;
+import org.cost.player.PlayerController;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,4 +81,52 @@ public class GameControllerTest {
         verify(mockRepository, times(0)).delete("gamename");
     }
 
+    //awaitingacceptance
+    @Test
+    public void startGameRequest_returnsOK_whenGameIsValid() throws Exception{
+        Game game = new Game();
+        game.setGameName("gamename");
+        Player player1 = new Player();
+        Player player2 = new Player();
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        players.add(player2);
+        game.setPlayers(players);
+
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk());
+
+    }
+
+
+    @Test
+    public void startGameRequest_returnsNotFound_whenGameIsNull() throws Exception{
+        when(mockRepository.findOne("gamename")).thenReturn(null);
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void startGameRequest_returnsConflict_whenLessThan2Players() throws Exception{
+        Game game = new Game();
+        game.setGameName("gamename");
+        Player player1 = new Player();
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        game.setPlayers(players);
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isConflict());
+    }
 }
