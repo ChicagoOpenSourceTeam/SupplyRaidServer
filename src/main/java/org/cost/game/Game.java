@@ -26,5 +26,5 @@ public class Game {
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "gameName")
     private List<Player> players;
 
-    private boolean started;
+    private int started;
 }

@@ -49,7 +49,7 @@ public class GameController {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
         if (game.getPlayers().size() >= 2) {
-            game.setStarted(true);
+            game.setStarted(1);
             return new ResponseEntity(HttpStatus.OK);
         }
 
@@ -60,7 +60,7 @@ public class GameController {
     public GameResponse getGame(HttpSession httpSession) {
         String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
         Game game = gameRepository.findOne(gameName);
-        if (game.isStarted()) {
+        if (game.getStarted() == 1) {
             return GameResponse.builder().gameStarted(true).build();
         } else {
             return GameResponse.builder().gameStarted(false).build();

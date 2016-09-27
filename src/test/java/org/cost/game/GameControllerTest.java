@@ -136,7 +136,7 @@ public class GameControllerTest {
     @Test
     public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
         Game game = new Game();
-        game.setStarted(true);
+        game.setStarted(1);
         when(mockRepository.findOne("gamename")).thenReturn(game);
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
@@ -153,7 +153,7 @@ public class GameControllerTest {
     @Test
     public void getGameEndpoint_returnsGameHasNotStarted_whenFalse() throws Exception{
         Game game = new Game();
-        game.setStarted(false);
+        game.setStarted(0);
         when(mockRepository.findOne("gamename")).thenReturn(game);
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
