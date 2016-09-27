@@ -1,6 +1,7 @@
 package org.cost.territory;
 
 import org.cost.SupplyRaidServerApplication;
+import org.cost.player.PlayerRepository;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,11 +34,13 @@ public class TerritoryControllerTest {
 
     private MockMvc mockMvc;
     private TerritoryRepository mockRepository;
+    private PlayerRepository mockPlayerRepository;
 
     @Before
     public void setup() {
+        mockPlayerRepository = mock(PlayerRepository.class);
         mockRepository = mock(TerritoryRepository.class);
-        TerritoryController territoryController = new TerritoryController(mockRepository);
+        TerritoryController territoryController = new TerritoryController(mockRepository, mockPlayerRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(territoryController).build();
     }
 
