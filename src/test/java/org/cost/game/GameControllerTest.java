@@ -5,6 +5,8 @@ import org.cost.player.Player;
 import org.cost.player.PlayerController;
 import org.junit.Before;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
@@ -129,4 +131,42 @@ public class GameControllerTest {
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isConflict());
     }
+
+
+    @Test
+    public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
+        Game game = new Game();
+        game.setStarted(true);
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        String JSONResponse = mockMvc.perform(get("/game").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        JSONAssert.assertEquals(
+                "{\n" +
+                        "  \"gameStarted\": true\n" +
+                        "}", JSONResponse, JSONCompareMode.LENIENT);
+    }
+
+    @Test
+    public void getGameEndpoint_returnsGameHasNotStarted_whenFalse() throws Exception{
+        Game game = new Game();
+        game.setStarted(false);
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        String JSONResponse = mockMvc.perform(get("/game").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        JSONAssert.assertEquals(
+                "{\n" +
+                        "  \"gameStarted\": false\n" +
+                        "}", JSONResponse, JSONCompareMode.LENIENT);
+    }
+
+
+
 }

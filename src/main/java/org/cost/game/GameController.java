@@ -49,12 +49,27 @@ public class GameController {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
         if (game.getPlayers().size() >= 2) {
-            // set gameStarted:true, here
+            game.setStarted(true);
             return new ResponseEntity(HttpStatus.OK);
         }
 
         return new ResponseEntity(HttpStatus.CONFLICT); //conflict is 409?
     }
+
+    @RequestMapping(path = "/game", method = RequestMethod.GET)
+    public GameResponse getGame(HttpSession httpSession) {
+        String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
+        Game game = gameRepository.findOne(gameName);
+        if (game.isStarted()) {
+            return GameResponse.builder().gameStarted(true).build();
+        } else {
+            return GameResponse.builder().gameStarted(false).build();
+        }
+
+
+    }
+
+
 
     @Builder
     @AllArgsConstructor
@@ -62,5 +77,14 @@ public class GameController {
     @Setter
     public static class GameRequest {
         private String gameName;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class GameResponse {
+        private boolean gameStarted;
     }
 }
