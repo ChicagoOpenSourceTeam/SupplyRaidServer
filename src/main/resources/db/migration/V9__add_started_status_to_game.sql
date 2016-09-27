@@ -1,0 +1,1 @@
+ALTER TABLE Game ADD started INT DEFAULT 0;
