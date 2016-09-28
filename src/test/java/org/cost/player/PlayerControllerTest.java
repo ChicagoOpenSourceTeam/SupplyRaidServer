@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -70,19 +71,23 @@ public class PlayerControllerTest {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player(), new Player(), new Player(), new Player()));
         when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(players);
 
-        mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()))
-                .andExpect(status().isConflict());
+        String contentAsString = mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()))
+                .andExpect(status().isConflict()).andReturn().getResponse().getContentAsString();
+
+        assertThat(contentAsString).isEqualTo("Game Lobby is Full");
     }
 
     @Test
     public void createPlayer_returnsConflict_whenPlayerAlreadyInGame() throws Exception {
         Player player = new Player();
         player.setName("zxmbies");
-        ArrayList<Player> players = new ArrayList<>(Arrays.asList(player));
+        ArrayList<Player> players = new ArrayList<>(Collections.singletonList(player));
         when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(players);
 
-        mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()))
-                .andExpect(status().isConflict());
+        String contentAsString = mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()))
+                .andExpect(status().isConflict()).andReturn().getResponse().getContentAsString();
+
+        assertThat(contentAsString).isEqualTo("Player name already taken");
     }
 
     @Test
