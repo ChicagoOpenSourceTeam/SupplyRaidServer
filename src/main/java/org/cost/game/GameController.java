@@ -50,6 +50,7 @@ public class GameController {
         }
         if (game.getPlayers().size() >= 2) {
             game.setStarted(1);
+            gameRepository.save(game);
             return new ResponseEntity(HttpStatus.OK);
         }
 

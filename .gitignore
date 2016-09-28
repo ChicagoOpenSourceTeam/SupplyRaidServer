@@ -12,6 +12,8 @@
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
 .idea/modules.xml
+.idea/misc.xml
+.idea/runConfigurations/
 .idea/*
 
 # Sensitive or high-churn files:

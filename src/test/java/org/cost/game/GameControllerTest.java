@@ -15,12 +15,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class GameControllerTest {
@@ -102,6 +102,8 @@ public class GameControllerTest {
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
 
+        verify(mockRepository).save(game);
+        assertThat(game.getStarted()).isEqualTo(1);
     }
 
 
