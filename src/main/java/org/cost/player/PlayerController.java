@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.cost.Exceptions;
+import org.cost.game.Game;
+import org.cost.game.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,17 +26,27 @@ public class PlayerController {
     public static final String SESSION_GAME_NAME_FIELD = "game_name";
     private PlayerRepository playerRepository;
     private PlayerNumberService playerNumberService;
+    private GameRepository gameRepository;
 
     @Autowired
-    public PlayerController(PlayerRepository gameRepository, PlayerNumberService playerNumberService) {
-        this.playerRepository = gameRepository;
+    public PlayerController(PlayerRepository playerRepository, PlayerNumberService playerNumberService, GameRepository gameRepository) {
+        this.playerRepository = playerRepository;
         this.playerNumberService = playerNumberService;
+        this.gameRepository = gameRepository;
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
     public ResponseEntity<String> createPlayerForGame(@RequestBody CreatePlayerRequest createPlayerRequest, HttpSession httpSession) {
         List<Player> players = playerRepository.findPlayersByGameName(createPlayerRequest.getGameName()); //will return one null if no players in game
         String playerName = createPlayerRequest.getPlayerName();
+
+        if (gameRepository.findOne(createPlayerRequest.getGameName()) == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (gameRepository.findOne(createPlayerRequest.getGameName()).getStarted() == 1) {
+            return new ResponseEntity<>("The game has already started.", HttpStatus.CONFLICT);
+        }
 
         ResponseEntity<String> gameJoinError = findGameJoinError(players, playerName);
         if (gameJoinError != null) { return gameJoinError; }
@@ -49,9 +61,6 @@ public class PlayerController {
     }
 
     private ResponseEntity<String> findGameJoinError(List<Player> players, String playerName) {
-        if (players.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         if (players.size() >= MAX_PLAYERS_ALLOWED_IN_GAME) {
             return new ResponseEntity<>("Game Lobby is Full", HttpStatus.CONFLICT);
         }
