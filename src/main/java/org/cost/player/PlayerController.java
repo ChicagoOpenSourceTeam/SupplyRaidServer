@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -33,11 +32,11 @@ public class PlayerController {
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
-    public ResponseEntity createPlayerForGame(@RequestBody CreatePlayerRequest createPlayerRequest, HttpSession httpSession) {
+    public ResponseEntity<String> createPlayerForGame(@RequestBody CreatePlayerRequest createPlayerRequest, HttpSession httpSession) {
         List<Player> players = playerRepository.findPlayersByGameName(createPlayerRequest.getGameName()); //will return one null if no players in game
         String playerName = createPlayerRequest.getPlayerName();
 
-        ResponseEntity gameJoinError = findGameJoinError(players, playerName);
+        ResponseEntity<String> gameJoinError = findGameJoinError(players, playerName);
         if (gameJoinError != null) { return gameJoinError; }
 
         playerRepository.save(Player.builder()
@@ -46,17 +45,20 @@ public class PlayerController {
                 .playerNumber(playerNumberService.getNextPlayerNumber(playerNumberService.getNumberOfPlayersInGame(players)))
                 .build());
         httpSession.setAttribute(SESSION_GAME_NAME_FIELD, createPlayerRequest.getGameName());
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    private ResponseEntity findGameJoinError(List<Player> players, String playerName) {
+    private ResponseEntity<String> findGameJoinError(List<Player> players, String playerName) {
         if (players.isEmpty()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        if (players.size() >= MAX_PLAYERS_ALLOWED_IN_GAME || players.stream()
+        if (players.size() >= MAX_PLAYERS_ALLOWED_IN_GAME) {
+            return new ResponseEntity<>("Game Lobby is Full", HttpStatus.CONFLICT);
+        }
+        if (players.stream()
                 .filter(player -> player != null)
-                .anyMatch(player -> player.getName().equals(playerName))) {
-            return new ResponseEntity(HttpStatus.CONFLICT);
+                .anyMatch(player -> player.getName().equals(playerName))){
+            return new ResponseEntity<>("Player name already taken", HttpStatus.CONFLICT);
         }
         return null;
     }
