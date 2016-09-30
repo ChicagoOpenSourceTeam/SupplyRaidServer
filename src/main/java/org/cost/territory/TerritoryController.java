@@ -2,26 +2,22 @@ package org.cost.territory;
 
 import lombok.*;
 
-import org.cost.game.GameController;
-import org.cost.game.GameRepository;
+import org.cost.player.Player;
 import org.cost.player.PlayerController;
 import org.cost.player.PlayerRepository;
 import org.cost.Exceptions;
+import org.cost.player.PlayerTerritory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ResourceSupport;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-import static java.util.stream.Collectors.toList;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -93,18 +89,37 @@ class TerritoryController {
         return builder.build();
     }
 
-
-
     @RequestMapping(path = "territories", method = RequestMethod.GET)
     public List<Territory> getTerritories(HttpSession session) {
         List<Territory> territories = territoryRepository.findAll();
-        territories.stream().forEach(new Consumer<Territory>() {
-            @Override
-            public void accept(Territory territory) {
-                territory.add(linkTo(methodOn(TerritoryController.class).getTerritory(territory.getTerritoryId(), session)).withSelfRel());
-            }
-        });
+        territories.forEach(territory -> territory.add(linkTo(methodOn(TerritoryController.class).getTerritory(territory.getTerritoryId(), session)).withSelfRel()));
         return territories;
+    }
+
+    @RequestMapping(path = "/territories/owner", method = RequestMethod.POST)
+    public ResponseEntity assignTerritoryToPlayer(@RequestBody TerritoryRequest territoryRequest, HttpSession session){
+        if(territoryRepository.exists((long) territoryRequest.getTerritoryId())) {
+
+            //assign territory id to player number
+            List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
+            Optional<Player> first = players
+                    .stream()
+                    .filter(p -> p.getPlayerNumber() == territoryRequest.getPlayerNumber())
+                    .findFirst();
+            if (!first.isPresent()) {
+                return new ResponseEntity(HttpStatus.NOT_FOUND);
+            }
+
+            Player player = first.get();
+
+            PlayerTerritory playerTerritory = new PlayerTerritory();
+            playerTerritory.setPlayerId(player.getPlayerId());
+            playerTerritory.setTerritoryId(territoryRequest.getTerritoryId());
+            player.getPlayerTerritoriesList().add(playerTerritory);
+            playerRepository.save(player);
+            return new ResponseEntity(HttpStatus.OK);
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @Getter
@@ -114,6 +129,7 @@ class TerritoryController {
     public static class TerritoryResponse {
         private String name;
         private boolean supply;
+        private long territoryId;
 
         private NeighboringTerritoryResponse north;
         private NeighboringTerritoryResponse south;
@@ -127,5 +143,14 @@ class TerritoryController {
     @Builder
     public static class NeighboringTerritoryResponse extends ResourceSupport {
         private String name;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class TerritoryRequest {
+        private int territoryId;
+        private int playerNumber;
     }
 }

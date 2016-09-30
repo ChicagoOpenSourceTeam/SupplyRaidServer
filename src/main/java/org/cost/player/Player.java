@@ -4,9 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.hateoas.ResourceSupport;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,4 +31,7 @@ public class Player extends ResourceSupport {
 
     @JsonIgnore
     public Long getPlayerId() { return playerId; }
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "playerId")
+    private List<PlayerTerritory> playerTerritoriesList;
 }
