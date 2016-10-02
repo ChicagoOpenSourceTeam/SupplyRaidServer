@@ -2,6 +2,7 @@ package org.cost.game;
 
 import lombok.*;
 import org.cost.player.Player;
+import org.cost.player.PlayerTerritory;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.CascadeType;
@@ -25,6 +26,9 @@ public class Game {
 
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "gameName")
     private List<Player> players;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "gameName")
+    private List<PlayerTerritory> playerTerritories;
 
     private int started;
 }

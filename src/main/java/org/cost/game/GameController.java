@@ -2,29 +2,45 @@ package org.cost.game;
 
 import lombok.*;
 import org.cost.player.PlayerController;
+import org.cost.player.PlayerTerritory;
+import org.cost.territory.Territory;
+import org.cost.territory.TerritoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController("/game")
 public class GameController {
 
     private GameRepository gameRepository;
-
+    private TerritoryRepository territoryRepository;
 
     @Autowired
-    public GameController(GameRepository gameRepository) {
+    public GameController(GameRepository gameRepository, TerritoryRepository territoryRepository) {
         this.gameRepository = gameRepository;
+        this.territoryRepository = territoryRepository;
     }
 
     @RequestMapping(path = "/game", method = RequestMethod.POST)
-    public ResponseEntity createGame(@RequestBody GameRequest gameRequest) {
+    public ResponseEntity createGame(@RequestBody final GameRequest gameRequest) {
         if (!gameRepository.exists(gameRequest.getGameName())) {
             Game game = new Game();
             game.setGameName(gameRequest.getGameName());
+            final ArrayList<PlayerTerritory> playerTerritories = new ArrayList<>();
+            territoryRepository.findAll()
+                    .forEach(territory ->{
+                        PlayerTerritory playerTerritory = new PlayerTerritory();
+                        playerTerritory.setTerritoryId(territory.getTerritoryId());
+                        playerTerritory.setGameName(gameRequest.getGameName());
+                        playerTerritory.setPlayerId(null);
+                        playerTerritories.add(playerTerritory);
+                    });
+            game.setPlayerTerritories(playerTerritories);
             gameRepository.save(game);
             return new ResponseEntity(HttpStatus.OK);
         }

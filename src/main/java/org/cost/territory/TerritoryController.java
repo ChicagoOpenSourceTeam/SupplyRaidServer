@@ -114,7 +114,7 @@ class TerritoryController {
 
             PlayerTerritory playerTerritory = new PlayerTerritory();
             playerTerritory.setPlayerId(player.getPlayerId());
-            playerTerritory.setTerritoryId(territoryRequest.getTerritoryId());
+            playerTerritory.setTerritoryId((long) territoryRequest.getTerritoryId());
             player.getPlayerTerritoriesList().add(playerTerritory);
             playerRepository.save(player);
             return new ResponseEntity(HttpStatus.OK);

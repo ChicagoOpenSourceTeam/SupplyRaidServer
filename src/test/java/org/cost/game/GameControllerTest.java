@@ -3,8 +3,12 @@ package org.cost.game;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cost.player.Player;
 import org.cost.player.PlayerController;
+import org.cost.player.PlayerTerritory;
+import org.cost.territory.Territory;
+import org.cost.territory.TerritoryRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.http.MediaType;
@@ -13,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
@@ -28,10 +33,14 @@ public class GameControllerTest {
     private MockMvc mockMvc;
     private GameRepository mockRepository;
 
+    TerritoryRepository mockTerritoryRepository;
+
+
     @Before
     public void setup() {
         mockRepository = mock(GameRepository.class);
-        GameController gameController = new GameController(mockRepository);
+        mockTerritoryRepository = mock(TerritoryRepository.class);
+        GameController gameController = new GameController(mockRepository, mockTerritoryRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(gameController).build();
     }
 
@@ -47,6 +56,7 @@ public class GameControllerTest {
 
         Game game = new Game();
         game.setGameName("Game Name");
+        game.setPlayerTerritories(new ArrayList<>());
         verify(mockRepository).save(game);
     }
 
@@ -167,6 +177,32 @@ public class GameControllerTest {
                 "{\n" +
                         "  \"gameStarted\": false\n" +
                         "}", JSONResponse, JSONCompareMode.LENIENT);
+    }
+
+
+    @Test
+    public void createGame_initializesPlayerTerritoriesOwnerstoNull_onPost() throws Exception{
+        List<Territory> territoryList = new ArrayList<>(Arrays.asList(Territory.builder().territoryId(1L).build(),
+                Territory.builder().territoryId(2L).build()));
+
+        when(mockTerritoryRepository.findAll()).thenReturn(territoryList);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        GameController.GameRequest gameRequest = GameController.GameRequest.builder().gameName("gamename").build();
+        String content = objectMapper.writeValueAsString(gameRequest);
+
+        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Game> gameArgumentCaptor = ArgumentCaptor.forClass(Game.class);
+        verify(mockRepository).save(gameArgumentCaptor.capture());
+
+        Game game = gameArgumentCaptor.getValue();
+
+        assertThat(game.getPlayerTerritories().size()).isEqualTo(2);
+        assertThat(game.getPlayerTerritories().get(0).getGameName()).isEqualTo("gamename");
+        assertThat(game.getPlayerTerritories().get(0).getTerritoryId()).isIn(1L, 2L);
+        assertThat(game.getPlayerTerritories().get(0).getPlayerId()).isNull();
     }
 
 
