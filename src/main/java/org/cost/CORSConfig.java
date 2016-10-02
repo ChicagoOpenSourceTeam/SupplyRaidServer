@@ -14,7 +14,7 @@ public class CORSConfig extends WebMvcConfigurerAdapter {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedMethods("*")
-                .allowedOrigins("*")
+                .allowedOrigins("http://supply-attack-client.bitbaloon.com")
                 .allowCredentials(true);
     }
 
