@@ -14,7 +14,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
 @EnableWebMvc
-@EnableSpringHttpSession
 public class CORSConfig extends WebMvcConfigurerAdapter {
 
     @Override
@@ -23,22 +22,12 @@ public class CORSConfig extends WebMvcConfigurerAdapter {
                 .allowedMethods("*")
                 .allowedOrigins("*")
                 .allowedHeaders("*")
-                .exposedHeaders("x-auth-token   ")
+                .exposedHeaders("Set-Cookie")
                 .allowCredentials(true);
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("**/**").addResourceLocations("classpath:/META-INF/resources/");
-    }
-
-    @Bean
-    MapSessionRepository sessionRepository() {
-        return new MapSessionRepository();
-    }
-
-    @Bean
-    public HttpSessionStrategy httpSessionStrategy() {
-        return new HeaderHttpSessionStrategy();
     }
 }
