@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Getter
@@ -21,6 +18,10 @@ public class PlayerTerritory {
     private Long playerId;
     private Long territoryId;
     private String gameName;
+
+    @ManyToOne
+    @JoinColumn(name = "player", insertable = false, updatable = false)
+    Player player;
 
 
     @Id

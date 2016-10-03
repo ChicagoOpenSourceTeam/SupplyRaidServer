@@ -2,11 +2,8 @@ package org.cost.territory;
 
 import lombok.*;
 
-import org.cost.player.Player;
-import org.cost.player.PlayerController;
-import org.cost.player.PlayerRepository;
+import org.cost.player.*;
 import org.cost.Exceptions;
-import org.cost.player.PlayerTerritory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.http.HttpStatus;
@@ -26,21 +23,33 @@ class TerritoryController {
 
     private TerritoryRepository territoryRepository;
     private PlayerRepository playerRepository;
+    private PlayerTerritoryRepository playerTerritoryRepository;
     //private PlayerController playerController;
 
     @Autowired
-    TerritoryController(TerritoryRepository territoryRepository, PlayerRepository playerRepository) {
+    TerritoryController(TerritoryRepository territoryRepository, PlayerRepository playerRepository,
+                        PlayerTerritoryRepository playerTerritoryRepository) {
         this.territoryRepository = territoryRepository;
         this.playerRepository = playerRepository;
+        this.playerTerritoryRepository = playerTerritoryRepository;
     }
 
     @RequestMapping(path = "territories/{territoryId}", method = RequestMethod.GET)
     public TerritoryResponse getTerritory(@PathVariable("territoryId") Long territoryId, HttpSession session) {
         Territory requestedTerritory = territoryRepository.findOne(territoryId);
 
+        PlayerTerritory requestedPlayerTerritory = playerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(
+                territoryId, (String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
+
         if (requestedTerritory == null) {
             throw new Exceptions.ResourceNotFoundException();
         }
+
+        requestedPlayerTerritory.getPlayer()
+                .add(
+                        linkTo(
+                                methodOn(PlayerController.class).getPlayer(requestedPlayerTerritory.getPlayer().getPlayerNumber(), session))
+                                .withSelfRel());
 
         TerritoryResponse.TerritoryResponseBuilder builder = TerritoryResponse.builder().name(requestedTerritory.getName());
 
@@ -83,6 +92,9 @@ class TerritoryController {
         else {
             builder = builder.supply(true);
         }
+
+        builder.owningPlayer(requestedPlayerTerritory.getPlayer());
+
 
 
 
@@ -127,6 +139,7 @@ class TerritoryController {
     @AllArgsConstructor
     @Builder
     public static class TerritoryResponse {
+        // Territory Fields
         private String name;
         private boolean supply;
         private long territoryId;
@@ -135,6 +148,9 @@ class TerritoryController {
         private NeighboringTerritoryResponse south;
         private NeighboringTerritoryResponse east;
         private NeighboringTerritoryResponse west;
+
+        // PlayerTerritory Fields
+        private Player owningPlayer;
     }
 
     @Getter

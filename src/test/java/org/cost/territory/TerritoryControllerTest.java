@@ -1,7 +1,8 @@
 package org.cost.territory;
 
 import org.cost.SupplyRaidServerApplication;
-import org.cost.player.PlayerRepository;
+import org.cost.game.Game;
+import org.cost.player.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -35,12 +37,15 @@ public class TerritoryControllerTest {
     private MockMvc mockMvc;
     private TerritoryRepository mockRepository;
     private PlayerRepository mockPlayerRepository;
+    private PlayerTerritoryRepository mockPlayerTerritoryRepository;
 
     @Before
     public void setup() {
         mockPlayerRepository = mock(PlayerRepository.class);
         mockRepository = mock(TerritoryRepository.class);
-        TerritoryController territoryController = new TerritoryController(mockRepository, mockPlayerRepository);
+        mockPlayerTerritoryRepository = mock(PlayerTerritoryRepository.class);
+        TerritoryController territoryController = new TerritoryController(
+                mockRepository, mockPlayerRepository, mockPlayerTerritoryRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(territoryController).build();
     }
 
@@ -113,4 +118,40 @@ public class TerritoryControllerTest {
                 "    ]}\n" +
                 "]", response, JSONCompareMode.LENIENT);
     }
+
+    @Test
+    public void getOwnerofTerritory_returns_linkToOwnerOfTerritory() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
+        PlayerTerritory playerTerritory = new PlayerTerritory();
+        playerTerritory.setPlayerId(30L);
+        playerTerritory.setTerritoryId(1L);
+        playerTerritory.setPlayer(Player.builder().playerNumber(2).name("player").build());
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
+                .thenReturn(playerTerritory);
+
+
+
+        String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        System.out.println("response = " + response);
+
+        JSONAssert.assertEquals("{\n" +
+                "  \"name\" : \"Location 1\",\n" +
+                "  \"owningPlayer\": {\n" +
+                "     \"name\": \"player\",\n" +
+                "     \"playerNumber\": 2,\n" +
+                "     \"links\":  [ {\n" +
+                "       \"rel\": \"self\",\n" +
+                "       \"href\": \"http://localhost/players/2\"\n" +
+                "     }]\n" +
+                "  }\n" +
+                "}", response, JSONCompareMode.LENIENT);
+
+
+    }
+
 }
