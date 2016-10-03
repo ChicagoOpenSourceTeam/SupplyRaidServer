@@ -23,6 +23,7 @@ public class CORSConfig extends WebMvcConfigurerAdapter {
                 .allowedMethods("*")
                 .allowedOrigins("*")
                 .allowedHeaders("*")
+                .exposedHeaders("x-auth-token   ")
                 .allowCredentials(true);
     }
 
