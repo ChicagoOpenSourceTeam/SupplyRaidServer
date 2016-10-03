@@ -93,7 +93,7 @@ public class TerritoryControllerTest {
     @Test
     public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
         when(mockRepository.findAll()).thenReturn(Arrays.asList(Territory.builder().name("Location 1").territoryId(1L).build(),
-                                                                Territory.builder().name("Location 2").territoryId(2L).build()));
+                Territory.builder().name("Location 2").territoryId(2L).build()));
 
         String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -132,12 +132,10 @@ public class TerritoryControllerTest {
                 .thenReturn(playerTerritory);
 
 
-
         String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        System.out.println("response = " + response);
 
         JSONAssert.assertEquals("{\n" +
                 "  \"name\" : \"Location 1\",\n" +
@@ -154,4 +152,26 @@ public class TerritoryControllerTest {
 
     }
 
+    @Test
+    public void getOwnerofTerritory_returnsNullOwningPlayer_whenNoOwner() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
+        PlayerTerritory playerTerritory = new PlayerTerritory();
+        playerTerritory.setPlayerId(30L);
+        playerTerritory.setTerritoryId(1L);
+        playerTerritory.setPlayer(null);
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
+                .thenReturn(playerTerritory);
+
+        String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        JSONAssert.assertEquals("{\n" +
+                "  \"name\" : \"Location 1\",\n" +
+                "  \"owningPlayer\": null\n" +
+                "}", response, JSONCompareMode.LENIENT);
+
+    }
 }

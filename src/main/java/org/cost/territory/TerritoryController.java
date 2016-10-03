@@ -45,11 +45,13 @@ class TerritoryController {
             throw new Exceptions.ResourceNotFoundException();
         }
 
-        requestedPlayerTerritory.getPlayer()
-                .add(
-                        linkTo(
-                                methodOn(PlayerController.class).getPlayer(requestedPlayerTerritory.getPlayer().getPlayerNumber(), session))
-                                .withSelfRel());
+        if (requestedPlayerTerritory.getPlayer() != null) {
+            requestedPlayerTerritory.getPlayer()
+                    .add(
+                            linkTo(
+                                    methodOn(PlayerController.class).getPlayer(requestedPlayerTerritory.getPlayer().getPlayerNumber(), session))
+                                    .withSelfRel());
+        }
 
         TerritoryResponse.TerritoryResponseBuilder builder = TerritoryResponse.builder().name(requestedTerritory.getName());
 

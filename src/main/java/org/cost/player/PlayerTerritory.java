@@ -20,7 +20,7 @@ public class PlayerTerritory {
     private String gameName;
 
     @ManyToOne
-    @JoinColumn(name = "player", insertable = false, updatable = false)
+    @JoinColumn(name = "playerId", insertable = false, updatable = false)
     Player player;
 
 
