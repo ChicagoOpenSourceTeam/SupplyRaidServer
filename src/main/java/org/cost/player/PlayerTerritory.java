@@ -18,6 +18,7 @@ public class PlayerTerritory {
     private Long playerId;
     private Long territoryId;
     private String gameName;
+    private Long troops;
 
     @ManyToOne
     @JoinColumn(name = "playerId", insertable = false, updatable = false)
@@ -27,5 +28,6 @@ public class PlayerTerritory {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
+
 
 }

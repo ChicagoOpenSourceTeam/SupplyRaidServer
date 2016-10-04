@@ -97,7 +97,7 @@ class TerritoryController {
         }
 
         builder.owningPlayer(playerForTerritoryResponse);
-
+        builder.troops(requestedPlayerTerritory.getTroops());
 
         return builder.build();
     }
@@ -155,6 +155,7 @@ class TerritoryController {
 
         // PlayerTerritory Fields
         private PlayerForTerritoryResponse owningPlayer;
+        private long troops;
     }
 
 

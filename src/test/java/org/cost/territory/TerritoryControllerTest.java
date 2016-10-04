@@ -163,7 +163,7 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getOwnerofTerritory_returnsNullOwningPlayer_whenNoOwner() throws Exception {
+    public void getOwnerOfTerritory_returnsNullOwningPlayer_whenNoOwner() throws Exception {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
@@ -235,5 +235,41 @@ public class TerritoryControllerTest {
 
         mockMvc.perform(post("/territories/owner").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void getTerritoryById_returnsNumberOfTroopsOnTerritory() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
+        PlayerTerritory playerTerritory = new PlayerTerritory();
+        playerTerritory.setPlayerId(30L);
+        playerTerritory.setTerritoryId(1L);
+        playerTerritory.setPlayer(Player.builder().playerNumber(2).name("player").build());
+        playerTerritory.setTroops(3L);
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
+                .thenReturn(playerTerritory);
+
+
+        String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+
+
+        JSONAssert.assertEquals("{\n" +
+                "  \"name\" : \"Location 1\",\n" +
+                "  \"owningPlayer\": {\n" +
+                "     \"name\": \"player\",\n" +
+                "     \"playerNumber\": 2,\n" +
+                "     \"links\":  [ {\n" +
+                "       \"rel\": \"self\",\n" +
+                "       \"href\": \"http://localhost/players/2\"\n" +
+                "     }]\n" +
+                "  },\n" +
+                "  \"troops\": 3\n" +
+                "}", response, JSONCompareMode.LENIENT);
+
+
     }
 }
