@@ -18,7 +18,7 @@ public class PlayerTerritory {
     private Long playerId;
     private Long territoryId;
     private String gameName;
-    private Long troops;
+    private int troops;
 
     @ManyToOne
     @JoinColumn(name = "playerId", insertable = false, updatable = false)

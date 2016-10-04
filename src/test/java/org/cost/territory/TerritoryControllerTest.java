@@ -246,7 +246,7 @@ public class TerritoryControllerTest {
         playerTerritory.setPlayerId(30L);
         playerTerritory.setTerritoryId(1L);
         playerTerritory.setPlayer(Player.builder().playerNumber(2).name("player").build());
-        playerTerritory.setTroops(3L);
+        playerTerritory.setTroops(3);
         when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
                 .thenReturn(playerTerritory);
 
