@@ -1,0 +1,1 @@
+ALTER TABLE Player_territory ADD troops INT DEFAULT 0;
