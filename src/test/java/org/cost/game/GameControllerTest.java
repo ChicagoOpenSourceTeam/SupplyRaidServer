@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cost.player.Player;
 import org.cost.player.PlayerController;
 import org.cost.player.PlayerTerritory;
+import org.cost.player.PlayerTerritoryRepository;
 import org.cost.territory.Territory;
 import org.cost.territory.TerritoryRepository;
 import org.junit.Before;
@@ -34,13 +35,15 @@ public class GameControllerTest {
     private GameRepository mockRepository;
 
     TerritoryRepository mockTerritoryRepository;
+    PlayerTerritoryRepository mockPlayerTerritoryRepository;
 
 
     @Before
     public void setup() {
         mockRepository = mock(GameRepository.class);
         mockTerritoryRepository = mock(TerritoryRepository.class);
-        GameController gameController = new GameController(mockRepository, mockTerritoryRepository);
+        mockPlayerTerritoryRepository = mock(PlayerTerritoryRepository.class);
+        GameController gameController = new GameController(mockRepository, mockTerritoryRepository, mockPlayerTerritoryRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(gameController).build();
     }
 
@@ -205,6 +208,65 @@ public class GameControllerTest {
         assertThat(game.getPlayerTerritories().get(0).getPlayerId()).isNull();
     }
 
+    @Test
+    public void startGame_assignsSupplyDepotsToPlayers() throws Exception {
+        Game game = new Game();
+        game.setGameName("gamename");
+        Player player1 = new Player();
+        player1.setPlayerId(10L);
+        Player player2 = new Player();
+        player2.setPlayerId(20L);
+        List<Player> players = new ArrayList<>();
+        players.add(player1);
+        players.add(player2);
+        game.setPlayers(players);
+        when(mockRepository.findOne("gamename")).thenReturn(game);
 
+        Territory territory1 = new Territory();
+        territory1.setSupply(2);
+        Territory territory2 = new Territory();
+        territory2.setSupply(2);
+        Territory territory3 = new Territory();
+        territory3.setSupply(2);
+        Territory territory4 = new Territory();
+        territory4.setSupply(2);
+        List<Territory> territories = new ArrayList<>();
+        territories.add(territory1);
+        territories.add(territory2);
+        territories.add(territory3);
+        territories.add(territory4);
+        when(mockTerritoryRepository.findAll()).thenReturn(territories);
 
+        PlayerTerritory playerTerritory1 = new PlayerTerritory();
+        PlayerTerritory playerTerritory2 = new PlayerTerritory();
+        PlayerTerritory playerTerritory3 = new PlayerTerritory();
+        PlayerTerritory playerTerritory4 = new PlayerTerritory();
+        List<PlayerTerritory> playerTerritories = new ArrayList<>();
+        playerTerritories.add(playerTerritory1);
+        playerTerritories.add(playerTerritory2);
+        playerTerritories.add(playerTerritory3);
+        playerTerritories.add(playerTerritory4);
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(playerTerritories);
+
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<List> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(mockPlayerTerritoryRepository).save(listArgumentCaptor.capture());
+
+        List<PlayerTerritory> value = listArgumentCaptor.getValue();
+
+        assertThat(value
+                .stream()
+                .filter(p -> p.getPlayerId().equals(10L))
+                .count()).isEqualTo(2);
+
+        assertThat(value
+                .stream()
+                .filter(p -> p.getPlayerId().equals(20L))
+                .count()).isEqualTo(2);
+    }
 }
