@@ -45,8 +45,10 @@ class TerritoryController {
             throw new Exceptions.ResourceNotFoundException();
         }
 
+        PlayerForTerritoryResponse playerForTerritoryResponse = null;
         if (requestedPlayerTerritory.getPlayer() != null) {
-            requestedPlayerTerritory.getPlayer()
+            playerForTerritoryResponse = new PlayerForTerritoryResponse(requestedPlayerTerritory.getPlayer().getPlayerNumber(), requestedPlayerTerritory.getPlayer().getName());
+            playerForTerritoryResponse
                     .add(
                             linkTo(
                                     methodOn(PlayerController.class).getPlayer(requestedPlayerTerritory.getPlayer().getPlayerNumber(), session))
@@ -85,19 +87,16 @@ class TerritoryController {
             builder = builder.south(southTerritoryResponse);
         }
 
-        int playersInGame = playerRepository.findPlayersByGameName((String)session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD)).size();
+        int playersInGame = playerRepository.findPlayersByGameName((String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD)).size();
         int supplyDepotId = requestedTerritory.getSupply();
 
         if ((supplyDepotId == 0) || (supplyDepotId > playersInGame)) {
             builder = builder.supply(false);
-        }
-        else {
+        } else {
             builder = builder.supply(true);
         }
 
-        builder.owningPlayer(requestedPlayerTerritory.getPlayer());
-
-
+        builder.owningPlayer(playerForTerritoryResponse);
 
 
         return builder.build();
@@ -111,29 +110,32 @@ class TerritoryController {
     }
 
     @RequestMapping(path = "/territories/owner", method = RequestMethod.POST)
-    public ResponseEntity assignTerritoryToPlayer(@RequestBody TerritoryRequest territoryRequest, HttpSession session){
-        if(territoryRepository.exists((long) territoryRequest.getTerritoryId())) {
+    public ResponseEntity assignTerritoryToPlayer(@RequestBody TerritoryRequest territoryRequest, HttpSession session) {
+        //assign territory id to player number
+        List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
+        Optional<Player> first = players
+                .stream()
+                .filter(p -> p.getPlayerNumber() == territoryRequest.getPlayerNumber())
+                .findFirst();
+        if (!first.isPresent()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
 
-            //assign territory id to player number
-            List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
-            Optional<Player> first = players
-                    .stream()
-                    .filter(p -> p.getPlayerNumber() == territoryRequest.getPlayerNumber())
-                    .findFirst();
-            if (!first.isPresent()) {
-                return new ResponseEntity(HttpStatus.NOT_FOUND);
-            }
+        Player player = first.get();
 
-            Player player = first.get();
+        PlayerTerritory playerTerritory = playerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(
+                (long) territoryRequest.getTerritoryId(), (String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
 
-            PlayerTerritory playerTerritory = new PlayerTerritory();
+        if (playerTerritory != null) {
             playerTerritory.setPlayerId(player.getPlayerId());
             playerTerritory.setTerritoryId((long) territoryRequest.getTerritoryId());
             player.getPlayerTerritoriesList().add(playerTerritory);
             playerRepository.save(player);
             return new ResponseEntity(HttpStatus.OK);
         }
+
         return new ResponseEntity(HttpStatus.NOT_FOUND);
+
     }
 
     @Getter
@@ -152,7 +154,17 @@ class TerritoryController {
         private NeighboringTerritoryResponse west;
 
         // PlayerTerritory Fields
-        private Player owningPlayer;
+        private PlayerForTerritoryResponse owningPlayer;
+    }
+
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class PlayerForTerritoryResponse extends ResourceSupport{
+        int playerNumber;
+        String name;
     }
 
     @Getter

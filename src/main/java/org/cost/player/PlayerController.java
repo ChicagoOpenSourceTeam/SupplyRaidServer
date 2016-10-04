@@ -8,6 +8,7 @@ import org.cost.Exceptions;
 import org.cost.game.Game;
 import org.cost.game.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.ResourceSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -49,7 +51,9 @@ public class PlayerController {
         }
 
         ResponseEntity<String> gameJoinError = findGameJoinError(players, playerName);
-        if (gameJoinError != null) { return gameJoinError; }
+        if (gameJoinError != null) {
+            return gameJoinError;
+        }
 
         playerRepository.save(Player.builder()
                 .gameName(createPlayerRequest.getGameName())
@@ -66,7 +70,7 @@ public class PlayerController {
         }
         if (players.stream()
                 .filter(player -> player != null)
-                .anyMatch(player -> player.getName().equals(playerName))){
+                .anyMatch(player -> player.getName().equals(playerName))) {
             return new ResponseEntity<>("Player name already taken", HttpStatus.CONFLICT);
         }
         return null;
@@ -74,33 +78,37 @@ public class PlayerController {
 
 
     @RequestMapping(path = "/players/{playerNumber}", method = RequestMethod.GET)
-    public Player getPlayer(@PathVariable int playerNumber, HttpSession session) {
+    public SinglePlayerResponse getPlayer(@PathVariable int playerNumber, HttpSession session) {
         List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(SESSION_GAME_NAME_FIELD));
         try {
-            return players.stream()
+            Player player = players.stream()
                     .filter(p -> p.getPlayerNumber() == playerNumber)
                     .findFirst()
                     .get();
+            return new SinglePlayerResponse(player.getName(), (long) player.getPlayerNumber());
         } catch (NoSuchElementException e) {
             throw new Exceptions.ResourceNotFoundException();
         }
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.GET)
-    public List<Player> getPlayers(HttpSession session) {
+    public List<AllPlayersPlayerResponse> getPlayers(HttpSession session) {
         List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(SESSION_GAME_NAME_FIELD));
         if (players.isEmpty()) {
             throw new Exceptions.ResourceNotFoundException();
         }
 
-        players
+        List<AllPlayersPlayerResponse> allPlayersPlayerResponses = players
                 .stream()
-                .forEach(player -> player.add(
+                .map(p -> new AllPlayersPlayerResponse(p.getName(), p.getPlayerNumber()))
+                .collect(Collectors.toList());
+        allPlayersPlayerResponses
+                .forEach(p -> p.add(
                         linkTo(
-                                methodOn(PlayerController.class).getPlayer(player.getPlayerNumber(), session))
+                                methodOn(PlayerController.class).getPlayer(p.getPlayerNumber(), session))
                                 .withSelfRel())
                 );
-        return players;
+        return allPlayersPlayerResponses;
     }
 
     @Builder
@@ -110,5 +118,23 @@ public class PlayerController {
     public static class CreatePlayerRequest {
         private String gameName;
         private String playerName;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class SinglePlayerResponse {
+        private String name;
+        private Long playerNumber;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class AllPlayersPlayerResponse extends ResourceSupport {
+        private String name;
+        private int playerNumber;
     }
 }

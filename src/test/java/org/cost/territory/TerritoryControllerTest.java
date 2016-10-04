@@ -1,5 +1,7 @@
 package org.cost.territory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cost.SupplyRaidServerApplication;
 import org.cost.game.Game;
 import org.cost.player.*;
@@ -21,14 +23,18 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,7 +61,11 @@ public class TerritoryControllerTest {
         when(mockRepository.findOne(5L)).thenReturn(Territory.builder().name("Cliffs 2").territoryId(5L).build());
         when(mockRepository.findOne(13L)).thenReturn(Territory.builder().name("Cliffs 4").territoryId(13L).build());
 
-        String response = mockMvc.perform(get("/territories/4").accept(MediaType.APPLICATION_JSON))
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(4L, "gamename")).thenReturn(new PlayerTerritory());
+        String response = mockMvc.perform(get("/territories/4").accept(MediaType.APPLICATION_JSON).session(mockHttpSession))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -173,5 +183,57 @@ public class TerritoryControllerTest {
                 "  \"owningPlayer\": null\n" +
                 "}", response, JSONCompareMode.LENIENT);
 
+    }
+
+    @Test
+    public void postTerritoryOwner_setsOwnerOfTerritory_toRequestedPlayer() throws Exception {
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        TerritoryController.TerritoryRequest territoryRequest = TerritoryController.TerritoryRequest.builder().playerNumber(1).territoryId(2).build();
+
+        PlayerTerritory playerTerritory = new PlayerTerritory();
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(2L, "gamename")).thenReturn(playerTerritory);
+        playerTerritory.setTerritoryId(2L);
+
+
+        Player player = new Player();
+        player.setPlayerNumber(1);
+        player.setPlayerTerritoriesList(new ArrayList<>());
+        Player wrongPlayer = new Player();
+        wrongPlayer.setPlayerNumber(4);
+        when(mockPlayerRepository.findPlayersByGameName("gamename")).thenReturn(new ArrayList<>(Arrays.asList(player, wrongPlayer)));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String content = objectMapper.writeValueAsString(territoryRequest);
+
+        mockMvc.perform(post("/territories/owner").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
+                .andExpect(status().isOk());
+
+        verify(mockPlayerRepository).save(player);
+
+        assertThat(player.getPlayerTerritoriesList().get(0)).isSameAs(playerTerritory);
+    }
+
+    @Test
+    public void postTerritoryOwner_returnsNotFound_whenTerritoryNotFound() throws Exception{
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        TerritoryController.TerritoryRequest territoryRequest = TerritoryController.TerritoryRequest.builder().playerNumber(1).territoryId(2).build();
+        ObjectMapper objectMapper = new ObjectMapper();
+        String content = objectMapper.writeValueAsString(territoryRequest);
+
+        Player player = new Player();
+        player.setPlayerNumber(1);
+        player.setPlayerTerritoriesList(new ArrayList<>());
+        Player wrongPlayer = new Player();
+        wrongPlayer.setPlayerNumber(4);
+        when(mockPlayerRepository.findPlayersByGameName("gamename")).thenReturn(new ArrayList<>(Arrays.asList(player, wrongPlayer)));
+
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(2L, "gamename")).thenReturn(null);
+
+        mockMvc.perform(post("/territories/owner").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
+                .andExpect(status().isNotFound());
     }
 }
