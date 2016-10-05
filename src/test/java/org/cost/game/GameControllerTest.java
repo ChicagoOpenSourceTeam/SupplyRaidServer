@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -96,21 +98,24 @@ public class GameControllerTest {
         verify(mockRepository, times(0)).delete("gamename");
     }
 
-    //awaitingacceptance
     @Test
     public void startGameRequest_returnsOK_whenGameIsValid() throws Exception{
         Game game = new Game();
         game.setGameName("gamename");
-        Player player1 = new Player();
-        Player player2 = new Player();
-        List<Player> players = new ArrayList<>();
-        players.add(player1);
-        players.add(player2);
+        List<Player> players = Arrays.asList(new Player(), new Player());
         game.setPlayers(players);
-
         when(mockRepository.findOne("gamename")).thenReturn(game);
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        List<Territory> territories = Arrays.asList(
+                Territory.builder().supply(2).build(), Territory.builder().supply(2).build(),
+                Territory.builder().supply(2).build(), Territory.builder().supply(2).build());
+        when(mockTerritoryRepository.findAll()).thenReturn(territories);
+
+        List<PlayerTerritory> playerTerritories = Arrays.asList(
+                new PlayerTerritory(), new PlayerTerritory(), new PlayerTerritory(), new PlayerTerritory());
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(playerTerritories);
 
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
@@ -134,9 +139,7 @@ public class GameControllerTest {
     public void startGameRequest_returnsConflict_whenLessThan2Players() throws Exception{
         Game game = new Game();
         game.setGameName("gamename");
-        Player player1 = new Player();
-        List<Player> players = new ArrayList<>();
-        players.add(player1);
+        List<Player> players = Collections.singletonList(new Player());
         game.setPlayers(players);
         when(mockRepository.findOne("gamename")).thenReturn(game);
 
@@ -212,51 +215,32 @@ public class GameControllerTest {
     public void startGame_assignsSupplyDepotsToPlayers() throws Exception {
         Game game = new Game();
         game.setGameName("gamename");
-        Player player1 = new Player();
-        player1.setPlayerId(10L);
-        Player player2 = new Player();
-        player2.setPlayerId(20L);
-        List<Player> players = new ArrayList<>();
-        players.add(player1);
-        players.add(player2);
+        List<Player> players = Arrays.asList(Player.builder().playerId(10L).build(), Player.builder().playerId(20L).build());
         game.setPlayers(players);
         when(mockRepository.findOne("gamename")).thenReturn(game);
 
-        Territory territory1 = new Territory();
-        territory1.setSupply(2);
-        Territory territory2 = new Territory();
-        territory2.setSupply(2);
-        Territory territory3 = new Territory();
-        territory3.setSupply(2);
-        Territory territory4 = new Territory();
-        territory4.setSupply(2);
-        List<Territory> territories = new ArrayList<>();
-        territories.add(territory1);
-        territories.add(territory2);
-        territories.add(territory3);
-        territories.add(territory4);
+        List<Territory> territories = Arrays.asList(
+                Territory.builder().supply(2).territoryId(1L).build(), Territory.builder().supply(2).territoryId(2L).build(),
+                Territory.builder().supply(2).territoryId(3L).build(), Territory.builder().supply(2).territoryId(4L).build());
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
 
-        PlayerTerritory playerTerritory1 = new PlayerTerritory();
-        PlayerTerritory playerTerritory2 = new PlayerTerritory();
-        PlayerTerritory playerTerritory3 = new PlayerTerritory();
-        PlayerTerritory playerTerritory4 = new PlayerTerritory();
-        List<PlayerTerritory> playerTerritories = new ArrayList<>();
-        playerTerritories.add(playerTerritory1);
-        playerTerritories.add(playerTerritory2);
-        playerTerritories.add(playerTerritory3);
-        playerTerritories.add(playerTerritory4);
+
+        List<PlayerTerritory> playerTerritories = Arrays.asList(
+                PlayerTerritory.builder().territoryId(1L).build(),
+                PlayerTerritory.builder().territoryId(2L).build(),
+                PlayerTerritory.builder().territoryId(3L).build(),
+                PlayerTerritory.builder().territoryId(4L).build());
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(playerTerritories);
+
 
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
 
         ArgumentCaptor<List> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
         verify(mockPlayerTerritoryRepository).save(listArgumentCaptor.capture());
-
         List<PlayerTerritory> value = listArgumentCaptor.getValue();
 
         assertThat(value
@@ -269,4 +253,91 @@ public class GameControllerTest {
                 .filter(p -> p.getPlayerId().equals(20L))
                 .count()).isEqualTo(2);
     }
+
+    @Test
+    public void startGame_assignsTerritoriesAdjacentToSupplyDepots_toControllingPlayers() throws Exception {
+        Game game = new Game();
+        game.setGameName("gamename");
+        List<Player> players = Arrays.asList(Player.builder().playerId(10L).build(), Player.builder().playerId(20L).build());
+        game.setPlayers(players);
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+
+        List<Territory> territories = Arrays.asList(
+                Territory.builder().supply(2).east(1L).north(2L).south(3L).west(4L).territoryId(5L).build(),
+                Territory.builder().supply(2).east(6L).north(7L).south(8L).west(9L).territoryId(10L).build(),
+                Territory.builder().supply(2).east(11L).north(12L).south(13L).west(14L).territoryId(15L).build(),
+                Territory.builder().supply(2).east(16L).north(17L).south(18L).west(19L).territoryId(20L).build());
+                when(mockTerritoryRepository.findAll()).thenReturn(territories);
+
+
+        List<PlayerTerritory> playerTerritories = Arrays.asList(
+                PlayerTerritory.builder().territoryId(1L).build(),
+                PlayerTerritory.builder().territoryId(2L).build(),
+                PlayerTerritory.builder().territoryId(3L).build(),
+                PlayerTerritory.builder().territoryId(4L).build(),
+                PlayerTerritory.builder().territoryId(5L).build(),
+                PlayerTerritory.builder().territoryId(6L).build(),
+                PlayerTerritory.builder().territoryId(7L).build(),
+                PlayerTerritory.builder().territoryId(8L).build(),
+                PlayerTerritory.builder().territoryId(9L).build(),
+                PlayerTerritory.builder().territoryId(10L).build(),
+                PlayerTerritory.builder().territoryId(11L).build(),
+                PlayerTerritory.builder().territoryId(12L).build(),
+                PlayerTerritory.builder().territoryId(13L).build(),
+                PlayerTerritory.builder().territoryId(14L).build(),
+                PlayerTerritory.builder().territoryId(15L).build(),
+                PlayerTerritory.builder().territoryId(16L).build(),
+                PlayerTerritory.builder().territoryId(17L).build(),
+                PlayerTerritory.builder().territoryId(18L).build(),
+                PlayerTerritory.builder().territoryId(19L).build(),
+                PlayerTerritory.builder().territoryId(20L).build());
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(playerTerritories);
+
+
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<List> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(mockPlayerTerritoryRepository).save(listArgumentCaptor.capture());
+        List<PlayerTerritory> value = listArgumentCaptor.getValue();
+
+        //assert that playerId of 5L is same as playerId of 1L, and so on.
+
+        Long playerId = value
+                .stream()
+                .filter(pt -> pt.getTerritoryId().equals(5L))
+                .findFirst()
+                .get().getPlayerId();
+
+        List<Long> territoriesWithPlayerId = value
+                .stream()
+                .filter(pt -> pt.getPlayerId().equals(playerId))
+                .map(PlayerTerritory::getTerritoryId)
+                .collect(Collectors.toList());
+
+        assertThat(territoriesWithPlayerId).contains(1L, 2L, 3L, 4L);
+
+
+        Long secondPlayerId = value
+                .stream()
+                .filter(pt -> pt.getTerritoryId().equals(15L))
+                .findFirst()
+                .get().getPlayerId();
+
+        territoriesWithPlayerId = value
+                .stream()
+                .filter(pt -> pt.getPlayerId().equals(secondPlayerId))
+                .map(PlayerTerritory::getTerritoryId)
+                .collect(Collectors.toList());
+
+
+        assertThat(territoriesWithPlayerId).contains(11L,12L,13L,14L);
+
+
+
+
+    }
+
 }

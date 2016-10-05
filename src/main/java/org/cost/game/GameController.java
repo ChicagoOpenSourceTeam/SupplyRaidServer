@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 @RestController("/game")
 public class GameController {
@@ -73,30 +75,64 @@ public class GameController {
             game.setStarted(1);
             gameRepository.save(game);
 
-            List<PlayerTerritory> supplyDepotPlayerTerritories = new ArrayList<>();
-            List<Long> territoryIds = territoryRepository.findAll()
-                    .stream()
-                    .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
-                    .map(Territory::getTerritoryId)
-                    .collect(Collectors.toList());
+            List<Long> allTerritoryIds = new ArrayList<>();
 
             List<PlayerTerritory> playerTerritories = playerTerritoryRepository.findByGameName(gameName);
 
-            playerTerritories = playerTerritories.stream()
-                    .filter(pt -> territoryIds.contains(pt.getTerritoryId()))
+            List<StartingLocation> startingLocations = territoryRepository.findAll()
+                    .stream()
+                    .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
+                    .map(territory ->  {
+                        StartingLocation.StartingLocationBuilder builder = StartingLocation.builder();
+                        builder.supplyDepot(playerTerritories.stream()
+                                .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
+                                .findFirst()
+                                .get());
+
+                        builder.surroundingTerritories(
+                                Arrays.asList(territory.getWest(), territory.getEast(), territory.getSouth(), territory.getNorth())
+                                        .stream()
+                                        .map(id -> playerTerritories
+                                                .stream()
+                                                .filter(pt -> pt.getTerritoryId().equals(id))
+                                                .findFirst())
+                                        .filter(Optional::isPresent)
+                                        .map(Optional::get)
+                                        .collect(Collectors.toList()));
+
+                        return builder.build();
+
+                    })
                     .collect(Collectors.toList());
 
             long seed = System.nanoTime();
-            Collections.shuffle(playerTerritories, new Random(seed));
+            Collections.shuffle(startingLocations, new Random(seed));
 
             ArrayList<PlayerTerritory> savedPlayerTerritories = new ArrayList<>();
             for (Player player : game.getPlayers()) {
-                PlayerTerritory pt = playerTerritories.remove(0);
-                pt.setPlayerId(player.getPlayerId());
-                savedPlayerTerritories.add(pt);
-                pt = playerTerritories.remove(0);
-                pt.setPlayerId(player.getPlayerId());
-                savedPlayerTerritories.add(pt);
+                StartingLocation startingLocation = startingLocations.remove(0);
+                startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
+                savedPlayerTerritories.add(startingLocation.getSupplyDepot());
+
+                startingLocation.getSurroundingTerritories()
+                        .forEach(
+                                surroundingTerritory -> {
+                                    surroundingTerritory.setPlayerId(player.getPlayerId());
+                                    savedPlayerTerritories.add(surroundingTerritory);
+                                }
+                        );
+
+                startingLocation = startingLocations.remove(0);
+                startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
+                savedPlayerTerritories.add(startingLocation.getSupplyDepot());
+
+                startingLocation.getSurroundingTerritories()
+                        .forEach(
+                                surroundingTerritory -> {
+                                    surroundingTerritory.setPlayerId(player.getPlayerId());
+                                    savedPlayerTerritories.add(surroundingTerritory);
+                                }
+                        );
             }
             playerTerritoryRepository.save(savedPlayerTerritories);
 
@@ -136,5 +172,14 @@ public class GameController {
     @Setter
     public static class GameResponse {
         private boolean gameStarted;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class StartingLocation {
+        private PlayerTerritory supplyDepot;
+        private List<PlayerTerritory> surroundingTerritories;
     }
 }
