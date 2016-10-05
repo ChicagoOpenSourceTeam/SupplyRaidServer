@@ -109,12 +109,15 @@ public class GameControllerTest {
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
 
         List<Territory> territories = Arrays.asList(
-                Territory.builder().supply(2).build(), Territory.builder().supply(2).build(),
-                Territory.builder().supply(2).build(), Territory.builder().supply(2).build());
+                Territory.builder().supply(2).territoryId(1L).build(), Territory.builder().supply(2).territoryId(1L).build(),
+                Territory.builder().supply(2).territoryId(1L).build(), Territory.builder().supply(2).territoryId(1L).build());
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
 
-        List<PlayerTerritory> playerTerritories = Arrays.asList(
-                new PlayerTerritory(), new PlayerTerritory(), new PlayerTerritory(), new PlayerTerritory());
+        List<PlayerTerritory> playerTerritories =  Arrays.asList(
+                PlayerTerritory.builder().territoryId(1L).build(),
+                PlayerTerritory.builder().territoryId(2L).build(),
+                PlayerTerritory.builder().territoryId(3L).build(),
+                PlayerTerritory.builder().territoryId(4L).build());
         when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(playerTerritories);
 
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
