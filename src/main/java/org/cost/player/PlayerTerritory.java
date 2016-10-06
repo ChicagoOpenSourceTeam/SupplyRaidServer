@@ -17,12 +17,12 @@ public class PlayerTerritory {
     private Long playerId;
     private Long territoryId;
     private String gameName;
+    private String territoryName;
     private int troops;
 
     @ManyToOne
     @JoinColumn(name = "playerId", insertable = false, updatable = false)
     Player player;
-
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)

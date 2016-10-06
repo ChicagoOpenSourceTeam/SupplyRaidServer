@@ -7,6 +7,9 @@ import lombok.Setter;
 import org.cost.Exceptions;
 import org.cost.game.Game;
 import org.cost.game.GameRepository;
+import org.cost.territory.Territory;
+import org.cost.territory.TerritoryController;
+import org.cost.territory.TerritoryController.TerritoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.http.HttpStatus;
@@ -14,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -85,7 +89,28 @@ public class PlayerController {
                     .filter(p -> p.getPlayerNumber() == playerNumber)
                     .findFirst()
                     .get();
-            return new SinglePlayerResponse(player.getName(), (long) player.getPlayerNumber());
+            List<TerritoryResponse> territoryResponseList = new ArrayList<>();
+            if (player.getPlayerTerritoriesList() != null) {
+                player.getPlayerTerritoriesList()
+                        .forEach(territory -> {
+                            TerritoryResponse territoryResponse = TerritoryResponse.builder()
+                                    .name(territory.getTerritoryName())
+                                    .build();
+                            territoryResponse
+                                    .add(
+                                            linkTo(
+                                                    methodOn(TerritoryController.class).getTerritory(territory.getTerritoryId(), session))
+                                                    .withSelfRel());
+                            territoryResponseList.add(territoryResponse);
+                        });
+            }
+
+            return SinglePlayerResponse.builder()
+                    .name(player.getName())
+                    .playerNumber((long) player.getPlayerNumber())
+                    .ownedTerritories(territoryResponseList)
+                    .build();
+
         } catch (NoSuchElementException e) {
             throw new Exceptions.ResourceNotFoundException();
         }
@@ -127,6 +152,7 @@ public class PlayerController {
     public static class SinglePlayerResponse {
         private String name;
         private Long playerNumber;
+        private List<TerritoryResponse> ownedTerritories;
     }
 
     @Builder

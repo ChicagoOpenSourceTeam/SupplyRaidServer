@@ -41,6 +41,7 @@ public class GameController {
                         PlayerTerritory playerTerritory = PlayerTerritory.builder()
                                 .territoryId(territory.getTerritoryId())
                                 .gameName(gameRequest.getGameName())
+                                .territoryName(territory.getName())
                                 .playerId(null).build();
                         playerTerritories.add(playerTerritory);
                     });

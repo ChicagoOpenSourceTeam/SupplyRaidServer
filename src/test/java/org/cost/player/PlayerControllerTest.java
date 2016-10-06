@@ -206,6 +206,49 @@ public class PlayerControllerTest {
 
         assertThat(contentAsString).isEqualTo("The game has already started.");
 
+    }
+
+    @Test
+    public void getPlayerByPlayerNumber_returnsListOfTerritoryLinks() throws Exception {
+        List<PlayerTerritory> territories = Arrays.asList(
+                PlayerTerritory.builder().gameName("gamename").territoryId(1L).troops(2).playerId(3L).territoryName("Cliffs 1").build(),
+                PlayerTerritory.builder().gameName("gamename").territoryId(2L).troops(3).playerId(3L).territoryName("Cliffs 2").build());
+        List<Player> players = Collections.singletonList(
+                Player.builder()
+                        .gameName("gamename")
+                        .name("player")
+                        .playerTerritoriesList(territories)
+                        .playerId(3L)
+                        .playerNumber(1)
+                .build());
+        when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        String JsonResponse = mockMvc.perform(get("/players/1").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        System.out.print(JsonResponse);
+        JSONAssert.assertEquals(" {\"name\": \"player\",\n" +
+                "    \"playerNumber\": 1,\n" +
+                "    \"ownedTerritories\":[\n" +
+                "      {\n" +
+                "        \"name\": \"Cliffs 1\",\n" +
+                "        \"links\": [{\n" +
+                "          \"rel\": \"self\",\n" +
+                "          \"href\": \"http://localhost/territories/1\"\n" +
+                "        }]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\": \"Cliffs 2\",\n" +
+                "        \"links\": [{\n" +
+                "          \"rel\": \"self\",\n" +
+                "          \"href\": \"http://localhost/territories/2\"\n" +
+                "        }]\n" +
+                "      }\n" +
+                "    ]\n" +
+                " }", JsonResponse, JSONCompareMode.LENIENT);
+
 
     }
 }

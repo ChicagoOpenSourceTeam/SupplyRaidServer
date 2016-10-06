@@ -1,0 +1,1 @@
+ALTER TABLE Player_territory ADD territory_name VARCHAR(64) NOT NULL;

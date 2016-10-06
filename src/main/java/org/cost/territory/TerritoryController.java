@@ -19,7 +19,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController("/territories")
-class TerritoryController {
+public class TerritoryController {
 
     private TerritoryRepository territoryRepository;
     private PlayerRepository playerRepository;
@@ -141,7 +141,7 @@ class TerritoryController {
     @Setter
     @AllArgsConstructor
     @Builder
-    public static class TerritoryResponse {
+    public static class TerritoryResponse extends ResourceSupport {
         // Territory Fields
         private String name;
         private boolean supply;

@@ -186,10 +186,8 @@ public class GameControllerTest {
 
         mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
                 .andExpect(status().isOk());
-
         ArgumentCaptor<Game> gameArgumentCaptor = ArgumentCaptor.forClass(Game.class);
         verify(mockRepository).save(gameArgumentCaptor.capture());
-
         Game game = gameArgumentCaptor.getValue();
 
         assertThat(game.getPlayerTerritories().size()).isEqualTo(2);
