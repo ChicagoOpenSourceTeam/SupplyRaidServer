@@ -60,16 +60,13 @@ public class TerritoryControllerTest {
         when(mockRepository.findOne(4L)).thenReturn(Territory.builder().name("Cliffs 1").north(null).east(5L).south(13L).west(null).build());
         when(mockRepository.findOne(5L)).thenReturn(Territory.builder().name("Cliffs 2").territoryId(5L).build());
         when(mockRepository.findOne(13L)).thenReturn(Territory.builder().name("Cliffs 4").territoryId(13L).build());
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(4L, "gamename")).thenReturn(new PlayerTerritory());
 
         MockHttpSession mockHttpSession = new MockHttpSession();
         mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-
-        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(4L, "gamename")).thenReturn(new PlayerTerritory());
         String response = mockMvc.perform(get("/territories/4").accept(MediaType.APPLICATION_JSON).session(mockHttpSession))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-
-        System.out.println("response = " + response);
 
         JSONAssert.assertEquals("{\n" +
                 "  \"name\": \"Cliffs 1\",\n" +
@@ -102,14 +99,13 @@ public class TerritoryControllerTest {
 
     @Test
     public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
-        when(mockRepository.findAll()).thenReturn(Arrays.asList(Territory.builder().name("Location 1").territoryId(1L).build(),
+        when(mockRepository.findAll()).thenReturn(Arrays.asList(
+                Territory.builder().name("Location 1").territoryId(1L).build(),
                 Territory.builder().name("Location 2").territoryId(2L).build()));
 
         String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-
-        System.out.println("response = " + response);
 
         JSONAssert.assertEquals("[\n" +
                 "  {\"name\": \"Location 1\",\n" +
@@ -131,21 +127,17 @@ public class TerritoryControllerTest {
 
     @Test
     public void getOwnerofTerritory_returns_linkToOwnerOfTerritory() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        Player player = Player.builder().playerNumber(2).name("player").build();
+        PlayerTerritory playerTerritory = PlayerTerritory.builder().playerId(30L).territoryId(1L).player(player).build();
         when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
-        PlayerTerritory playerTerritory = new PlayerTerritory();
-        playerTerritory.setPlayerId(30L);
-        playerTerritory.setTerritoryId(1L);
-        playerTerritory.setPlayer(Player.builder().playerNumber(2).name("player").build());
         when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
                 .thenReturn(playerTerritory);
 
-
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-
 
         JSONAssert.assertEquals("{\n" +
                 "  \"name\" : \"Location 1\",\n" +
@@ -164,16 +156,13 @@ public class TerritoryControllerTest {
 
     @Test
     public void getOwnerOfTerritory_returnsNullOwningPlayer_whenNoOwner() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        PlayerTerritory playerTerritory = PlayerTerritory.builder().playerId(30L).territoryId(1L).player(null).build();
         when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
-        PlayerTerritory playerTerritory = new PlayerTerritory();
-        playerTerritory.setPlayerId(30L);
-        playerTerritory.setTerritoryId(1L);
-        playerTerritory.setPlayer(null);
         when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
                 .thenReturn(playerTerritory);
 
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -187,26 +176,18 @@ public class TerritoryControllerTest {
 
     @Test
     public void postTerritoryOwner_setsOwnerOfTerritory_toRequestedPlayer() throws Exception {
-        MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-
-        TerritoryController.TerritoryRequest territoryRequest = TerritoryController.TerritoryRequest.builder().playerNumber(1).territoryId(2).build();
-
-        PlayerTerritory playerTerritory = new PlayerTerritory();
+        PlayerTerritory playerTerritory = PlayerTerritory.builder().territoryId(2L).build();
         when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(2L, "gamename")).thenReturn(playerTerritory);
-        playerTerritory.setTerritoryId(2L);
 
-
-        Player player = new Player();
-        player.setPlayerNumber(1);
-        player.setPlayerTerritoriesList(new ArrayList<>());
-        Player wrongPlayer = new Player();
-        wrongPlayer.setPlayerNumber(4);
+        Player player = Player.builder().playerNumber(1).playerTerritoriesList(new ArrayList<>()).build();
+        Player wrongPlayer = Player.builder().playerNumber(4).build();
         when(mockPlayerRepository.findPlayersByGameName("gamename")).thenReturn(new ArrayList<>(Arrays.asList(player, wrongPlayer)));
 
+        TerritoryController.TerritoryRequest territoryRequest = TerritoryController.TerritoryRequest.builder().playerNumber(1).territoryId(2).build();
         ObjectMapper objectMapper = new ObjectMapper();
         String content = objectMapper.writeValueAsString(territoryRequest);
-
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         mockMvc.perform(post("/territories/owner").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
                 .andExpect(status().isOk());
 
@@ -217,45 +198,34 @@ public class TerritoryControllerTest {
 
     @Test
     public void postTerritoryOwner_returnsNotFound_whenTerritoryNotFound() throws Exception{
-        MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        Player player = Player.builder().playerNumber(1).playerTerritoriesList(new ArrayList<>()).build();
+        Player wrongPlayer = Player.builder().playerNumber(4).build();
+        when(mockPlayerRepository.findPlayersByGameName("gamename")).thenReturn(new ArrayList<>(Arrays.asList(player, wrongPlayer)));
+        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(2L, "gamename")).thenReturn(null);
 
         TerritoryController.TerritoryRequest territoryRequest = TerritoryController.TerritoryRequest.builder().playerNumber(1).territoryId(2).build();
         ObjectMapper objectMapper = new ObjectMapper();
         String content = objectMapper.writeValueAsString(territoryRequest);
 
-        Player player = new Player();
-        player.setPlayerNumber(1);
-        player.setPlayerTerritoriesList(new ArrayList<>());
-        Player wrongPlayer = new Player();
-        wrongPlayer.setPlayerNumber(4);
-        when(mockPlayerRepository.findPlayersByGameName("gamename")).thenReturn(new ArrayList<>(Arrays.asList(player, wrongPlayer)));
-
-        when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(2L, "gamename")).thenReturn(null);
-
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         mockMvc.perform(post("/territories/owner").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void getTerritoryById_returnsNumberOfTroopsOnTerritory() throws Exception {
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         when(mockRepository.findOne(1L)).thenReturn((Territory.builder().name("Location 1").territoryId(1L).build()));
-        PlayerTerritory playerTerritory = new PlayerTerritory();
-        playerTerritory.setPlayerId(30L);
-        playerTerritory.setTerritoryId(1L);
-        playerTerritory.setPlayer(Player.builder().playerNumber(2).name("player").build());
-        playerTerritory.setTroops(3);
+        PlayerTerritory playerTerritory = PlayerTerritory.builder().playerId(30L).territoryId(1L).
+                player(Player.builder().playerNumber(2).name("player").build()).troops(3).build();
         when(mockPlayerTerritoryRepository.findPlayerTerritoryByTerritoryIdAndGameName(1L, "gamename"))
                 .thenReturn(playerTerritory);
 
-
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         String response = mockMvc.perform(get("/territories/1").accept(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-
-
 
         JSONAssert.assertEquals("{\n" +
                 "  \"name\" : \"Location 1\",\n" +

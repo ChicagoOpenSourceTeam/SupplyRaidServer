@@ -14,10 +14,12 @@ import javax.validation.groups.ConvertGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class Game {
     @Id

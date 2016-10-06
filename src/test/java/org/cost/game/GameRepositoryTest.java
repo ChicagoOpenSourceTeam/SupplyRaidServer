@@ -10,9 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * Created by Jordon on 9/19/2016.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("test")
@@ -26,13 +23,10 @@ public class GameRepositoryTest {
 
     @Test
     public void deleteGame_deletesPlayers_whenPlayersExist() {
-        Game excalibur = new Game();
-        excalibur.setGameName("Excalibur");
+        Game excalibur = Game.builder().gameName("Excalibur").build();
         gameRepository.save(excalibur);
 
-        Player player = new Player();
-        player.setName("zxmbies");
-        player.setGameName("Excalibur");
+        Player player = Player.builder().name("zxmbies").gameName("Excalibur").build();
         playerRepository.save(player);
 
         gameRepository.delete("Excalibur");

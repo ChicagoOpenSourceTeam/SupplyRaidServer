@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -55,10 +56,7 @@ public class PlayerControllerTest {
         mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()))
                 .andExpect(status().isOk());
 
-        Player expectedPlayer = new Player();
-        expectedPlayer.setName("zxmbies");
-        expectedPlayer.setGameName("Excalibur");
-        expectedPlayer.setPlayerNumber(999);
+        Player expectedPlayer = Player.builder().name("zxmbies").gameName("Excalibur").playerNumber(999).build();
         verify(mockRepository).save(expectedPlayer);
     }
 
@@ -67,8 +65,8 @@ public class PlayerControllerTest {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player[]{null}));
         when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(players);
         when(mockGameRepository.findOne(anyString())).thenReturn(new Game());
-        MockHttpSession httpSession = new MockHttpSession();
 
+        MockHttpSession httpSession = new MockHttpSession();
         mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()).session(httpSession));
 
         assertThat(httpSession.getAttribute("game_name")).isEqualTo("Excalibur");
@@ -88,8 +86,7 @@ public class PlayerControllerTest {
 
     @Test
     public void createPlayer_returnsConflict_whenPlayerAlreadyInGame() throws Exception {
-        Player player = new Player();
-        player.setName("zxmbies");
+        Player player = Player.builder().name("zxmbies").build();
         ArrayList<Player> players = new ArrayList<>(Collections.singletonList(player));
         when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(players);
         when(mockGameRepository.findOne(anyString())).thenReturn(new Game());
@@ -116,14 +113,14 @@ public class PlayerControllerTest {
 
     @Test
     public void getPlayer_returnsPlayerInGameWhosePlayerNumberMatchesRequest() throws Exception {
-        MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-        ArrayList<Player> players = new ArrayList<>();
-        players.add(Player.builder().playerNumber(1).name("zxmbies").build());
-        players.add(Player.builder().playerNumber(2).name("qxc").build());
-        players.add(Player.builder().playerNumber(3).name("eidlyn").build());
+        List<Player> players = Arrays.asList(
+            Player.builder().playerNumber(1).name("zxmbies").build(),
+            Player.builder().playerNumber(2).name("qxc").build(),
+            Player.builder().playerNumber(3).name("eidlyn").build());
         when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
 
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         String actualResponse = mockMvc.perform(get("/players/3").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
@@ -136,12 +133,11 @@ public class PlayerControllerTest {
 
     @Test
     public void getPlayer_returns404WhenPlayerNumberNotFoundInGame() throws Exception {
-        MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-        ArrayList<Player> players = new ArrayList<>();
-        players.add(Player.builder().playerNumber(1).name("zxmbies").build());
+        List<Player> players = Collections.singletonList(Player.builder().playerNumber(1).name("zxmbies").build());
         when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
 
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         mockMvc.perform(get("/players/6").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
                 .andExpect(status().isNotFound());
 
@@ -149,14 +145,14 @@ public class PlayerControllerTest {
 
     @Test
     public void getPlayers_returnsListOfPlayersInGame() throws Exception {
-        MockHttpSession mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-        ArrayList<Player> players = new ArrayList<>();
-        players.add(Player.builder().playerNumber(3).name("eidlyn").build());
-        players.add(Player.builder().playerNumber(1).name("zxmbies").build());
-        players.add(Player.builder().playerNumber(2).name("qxc").build());
+        List<Player> players = Arrays.asList(
+                Player.builder().playerNumber(1).name("zxmbies").build(),
+                Player.builder().playerNumber(2).name("qxc").build(),
+                Player.builder().playerNumber(3).name("eidlyn").build());
         when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
 
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         String actualResponse = mockMvc.perform(get("/players").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
@@ -197,13 +193,12 @@ public class PlayerControllerTest {
 
     @Test
     public void postPlayer_returnsError_whenGameStarted() throws Exception {
-        Game game = new Game();
-        game.setGameName("Excalibur");
-        game.setStarted(1);
-
-        when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(new ArrayList<>(Arrays.asList(Player.builder().name("a").build(),
-                Player.builder().name("b").build(),
-                Player.builder().name("c").build())));
+        Game game = Game.builder().gameName("Excalibur").started(1).build();
+        when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(new ArrayList<>(
+                Arrays.asList(
+                        Player.builder().name("a").build(),
+                        Player.builder().name("b").build(),
+                        Player.builder().name("c").build())));
         when(mockGameRepository.findOne("Excalibur")).thenReturn(game);
 
         String contentAsString = mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()))

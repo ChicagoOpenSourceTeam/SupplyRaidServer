@@ -52,21 +52,18 @@ public class PlayerRepositoryTest {
     }
 
     private void createPlayerZxmbiesInExcalibur() {
-        Player player = new Player();
-        player.setName("zxmbies");
-        player.setGameName("Excalibur");
+        Player player = Player.builder().name("zxmbies").gameName("Excalibur").build();
         playerRepository.save(player);
     }
 
     private void createGameNamedExcalibur() {
-        Game excalibur = new Game();
-        excalibur.setGameName("Excalibur");
+        Game excalibur = Game.builder().gameName("Excalibur").build();
         gameRepository.save(excalibur);
     }
 
     @After
     public void teardown() {
-        playerRepository.deleteAll();;
+        playerRepository.deleteAll();
         gameRepository.deleteAll();
     }
 }

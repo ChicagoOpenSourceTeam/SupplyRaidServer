@@ -59,9 +59,7 @@ public class GameControllerTest {
         mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
                 .andExpect(status().isOk());
 
-        Game game = new Game();
-        game.setGameName("Game Name");
-        game.setPlayerTerritories(new ArrayList<>());
+        Game game = Game.builder().gameName("Game Name").playerTerritories(new ArrayList<>()).build();
         verify(mockRepository).save(game);
     }
 
@@ -100,19 +98,15 @@ public class GameControllerTest {
 
     @Test
     public void startGameRequest_returnsOK_whenGameIsValid() throws Exception{
-        Game game = new Game();
-        game.setGameName("gamename");
         List<Player> players = Arrays.asList(new Player(), new Player());
-        game.setPlayers(players);
+        Game game = Game.builder().gameName("gamename").players(players).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-
         List<Territory> territories = generateTerritoriesForTest();
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
-
         when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
 
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
 
@@ -134,15 +128,13 @@ public class GameControllerTest {
 
     @Test
     public void startGameRequest_returnsConflict_whenLessThan2Players() throws Exception{
-        Game game = new Game();
-        game.setGameName("gamename");
         List<Player> players = Collections.singletonList(new Player());
-        game.setPlayers(players);
+        Game game = Game.builder().gameName("gamename").players(players).build();
+
         when(mockRepository.findOne("gamename")).thenReturn(game);
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isConflict());
     }
@@ -150,12 +142,11 @@ public class GameControllerTest {
 
     @Test
     public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
-        Game game = new Game();
-        game.setStarted(1);
+        Game game = Game.builder().started(1).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
+
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-
         String JSONResponse = mockMvc.perform(get("/game").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
@@ -167,12 +158,11 @@ public class GameControllerTest {
 
     @Test
     public void getGameEndpoint_returnsGameHasNotStarted_whenFalse() throws Exception{
-        Game game = new Game();
-        game.setStarted(0);
+        Game game = Game.builder().started(0).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
+
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-
         String JSONResponse = mockMvc.perform(get("/game").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
@@ -210,12 +200,9 @@ public class GameControllerTest {
 
     @Test
     public void startGame_assignsSupplyDepotsToPlayers_andPuts8TroopsOnDepots() throws Exception {
-        Game game = new Game();
-        game.setGameName("gamename");
         List<Player> players = Arrays.asList(Player.builder().playerId(10L).build(), Player.builder().playerId(20L).build());
-        game.setPlayers(players);
+        Game game = Game.builder().gameName("gamename").players(players).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
-
         List<Territory> territories = generateTerritoriesForTest();
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
 
@@ -223,8 +210,6 @@ public class GameControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
         when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
-
-
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
 
@@ -248,20 +233,15 @@ public class GameControllerTest {
 
     @Test
     public void startGame_assignsTerritoriesAdjacentToSupplyDepots_toControllingPlayers() throws Exception {
-        Game game = new Game();
-        game.setGameName("gamename");
         List<Player> players = Arrays.asList(Player.builder().playerId(10L).build(), Player.builder().playerId(20L).build());
-        game.setPlayers(players);
+        Game game = Game.builder().gameName("gamename").players(players).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
-
         List<Territory> territories = generateTerritoriesForTest();
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
-
-
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
 
@@ -302,20 +282,15 @@ public class GameControllerTest {
 
     @Test
     public void startGame_initializesNonSupplyTerritories_toHave12SurroundingTroops() throws Exception {
-        Game game = new Game();
-        game.setGameName("gamename");
         List<Player> players = Arrays.asList(Player.builder().playerId(10L).build(), Player.builder().playerId(20L).build());
-        game.setPlayers(players);
+        Game game = Game.builder().gameName("gamename").players(players).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
-
         List<Territory> territories = generateTerritoriesForTest();
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
-
-
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk());
 
@@ -327,7 +302,7 @@ public class GameControllerTest {
         for (PlayerTerritory pt:value) {
             totalTroops += pt.getTroops();
         }
-        assertThat(totalTroops).isEqualTo(80); // (8 troops*2supplydepots + 12troops)*2players
+        assertThat(totalTroops).isEqualTo(80); // (8 troops per depot + 12 troops per adjacent)*2depotsperplayer*2players
     }
 
 

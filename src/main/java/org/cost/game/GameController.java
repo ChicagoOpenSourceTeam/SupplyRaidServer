@@ -35,23 +35,24 @@ public class GameController {
     @RequestMapping(path = "/game", method = RequestMethod.POST)
     public ResponseEntity createGame(@RequestBody final GameRequest gameRequest) {
         if (!gameRepository.exists(gameRequest.getGameName())) {
-            Game game = new Game();
-            game.setGameName(gameRequest.getGameName());
             final ArrayList<PlayerTerritory> playerTerritories = new ArrayList<>();
             territoryRepository.findAll()
                     .forEach(territory ->{
-                        PlayerTerritory playerTerritory = new PlayerTerritory();
-                        playerTerritory.setTerritoryId(territory.getTerritoryId());
-                        playerTerritory.setGameName(gameRequest.getGameName());
-                        playerTerritory.setPlayerId(null);
+                        PlayerTerritory playerTerritory = PlayerTerritory.builder()
+                                .territoryId(territory.getTerritoryId())
+                                .gameName(gameRequest.getGameName())
+                                .playerId(null).build();
                         playerTerritories.add(playerTerritory);
                     });
-            game.setPlayerTerritories(playerTerritories);
+            Game game = Game.builder()
+                    .gameName(gameRequest.getGameName())
+                    .playerTerritories(playerTerritories).build();
             gameRepository.save(game);
             return new ResponseEntity(HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.CONFLICT);
     }
+
 
     @RequestMapping(path = "/game/{gameName}", method = RequestMethod.DELETE)
     public ResponseEntity deleteGame(@PathVariable String gameName) {

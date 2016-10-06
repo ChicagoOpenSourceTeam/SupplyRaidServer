@@ -111,7 +111,6 @@ class TerritoryController {
 
     @RequestMapping(path = "/territories/owner", method = RequestMethod.POST)
     public ResponseEntity assignTerritoryToPlayer(@RequestBody TerritoryRequest territoryRequest, HttpSession session) {
-        //assign territory id to player number
         List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
         Optional<Player> first = players
                 .stream()
