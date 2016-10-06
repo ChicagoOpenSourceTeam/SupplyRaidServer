@@ -95,6 +95,8 @@ public class PlayerController {
                         .forEach(territory -> {
                             TerritoryResponse territoryResponse = TerritoryResponse.builder()
                                     .name(territory.getTerritoryName())
+                                    .troops(territory.getTroops())
+                                    .territoryId(territory.getTerritoryId())
                                     .build();
                             territoryResponse
                                     .add(
