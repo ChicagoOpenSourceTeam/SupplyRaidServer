@@ -112,27 +112,27 @@ public class GameController {
             for (Player player : game.getPlayers()) {
                 StartingLocation startingLocation = startingLocations.remove(0);
                 startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
+                startingLocation.getSupplyDepot().setTroops(8);
                 savedPlayerTerritories.add(startingLocation.getSupplyDepot());
 
-                startingLocation.getSurroundingTerritories()
-                        .forEach(
-                                surroundingTerritory -> {
-                                    surroundingTerritory.setPlayerId(player.getPlayerId());
-                                    savedPlayerTerritories.add(surroundingTerritory);
-                                }
-                        );
+                int numberOfSurroundingTerritories = (int)startingLocation.
+                        getSurroundingTerritories().stream().filter(t -> t != null).count();
+                int troopsPerSurroundingTerritory = 12/numberOfSurroundingTerritories;
+
+                initializeTroopsForTerritoriesAdjacentToSupplyDepots(savedPlayerTerritories, player,
+                        startingLocation, troopsPerSurroundingTerritory);
 
                 startingLocation = startingLocations.remove(0);
                 startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
+                startingLocation.getSupplyDepot().setTroops(8);
                 savedPlayerTerritories.add(startingLocation.getSupplyDepot());
 
-                startingLocation.getSurroundingTerritories()
-                        .forEach(
-                                surroundingTerritory -> {
-                                    surroundingTerritory.setPlayerId(player.getPlayerId());
-                                    savedPlayerTerritories.add(surroundingTerritory);
-                                }
-                        );
+                numberOfSurroundingTerritories = (int)startingLocation.
+                        getSurroundingTerritories().stream().filter(t -> t != null).count();
+                troopsPerSurroundingTerritory = 12/numberOfSurroundingTerritories;
+
+                initializeTroopsForTerritoriesAdjacentToSupplyDepots(savedPlayerTerritories, player,
+                        startingLocation, troopsPerSurroundingTerritory);
             }
             playerTerritoryRepository.save(savedPlayerTerritories);
 
@@ -141,6 +141,19 @@ public class GameController {
 
 
         return new ResponseEntity(HttpStatus.CONFLICT); //conflict is 409?
+    }
+
+    private void initializeTroopsForTerritoriesAdjacentToSupplyDepots(ArrayList<PlayerTerritory> savedPlayerTerritories,
+                                                                      Player player, StartingLocation startingLocation,
+                                                                      int troopsPerSurroundingTerritory) {
+        startingLocation.getSurroundingTerritories()
+                .forEach(
+                        surroundingTerritory -> {
+                            surroundingTerritory.setPlayerId(player.getPlayerId());
+                            surroundingTerritory.setTroops(troopsPerSurroundingTerritory);
+                            savedPlayerTerritories.add(surroundingTerritory);
+                        }
+                );
     }
 
     @RequestMapping(path = "/game", method = RequestMethod.GET)
