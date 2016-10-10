@@ -275,12 +275,13 @@ public class PlayerControllerTest {
 
 
     @Test
-    public void getPlayersIncludesTroopsInResponse() throws Exception {
+    public void getPlayersIncludesTroopsAndTerritoriesInResponse() throws Exception {
         List<PlayerTerritory> territories = Arrays.asList(
                 PlayerTerritory.builder().gameName("gamename").territoryId(1L).troops(2).playerId(3L).territoryName("Cliffs 1").build(),
                 PlayerTerritory.builder().gameName("gamename").territoryId(2L).troops(3).playerId(3L).territoryName("Cliffs 2").build());
         List<PlayerTerritory> territories2 = Arrays.asList(
                 PlayerTerritory.builder().gameName("gamename").territoryId(3L).troops(7).playerId(2L).territoryName("Hills 1").build(),
+                PlayerTerritory.builder().gameName("gamename").territoryId(9L).troops(0).playerId(2L).territoryName("Island 4").build(),
                 PlayerTerritory.builder().gameName("gamename").territoryId(4L).troops(14).playerId(2L).territoryName("Hills 2").build());
         List<Player> players = Arrays.asList(
                 Player.builder()
@@ -307,6 +308,7 @@ public class PlayerControllerTest {
         JSONAssert.assertEquals("[\n" +
                 "  {\"name\": \"player1\",\n" +
                 "    \"troops\": 5,\n" +
+                "    \"territories\": 2,\n" +
                 "    \"playerNumber\": 1,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
@@ -317,6 +319,7 @@ public class PlayerControllerTest {
                 "  {\"name\": \"player2\",\n" +
                 "    \"troops\": 21,\n" +
                 "    \"playerNumber\": 2,\n" +
+                "    \"territories\": 3,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +

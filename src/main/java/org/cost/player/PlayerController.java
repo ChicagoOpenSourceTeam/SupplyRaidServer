@@ -130,7 +130,8 @@ public class PlayerController {
                 .map(p -> new AllPlayersPlayerResponse(
                         p.getName(),
                         p.getPlayerNumber(),
-                        p.getPlayerTerritoriesList().stream().mapToInt(PlayerTerritory::getTroops).sum())
+                        p.getPlayerTerritoriesList().stream().mapToInt(PlayerTerritory::getTroops).sum(),
+                        ((int) p.getPlayerTerritoriesList().stream().count()))
                 )
                         .collect(Collectors.toList());
         allPlayersPlayerResponses
@@ -169,6 +170,7 @@ public class PlayerController {
         private String name;
         private int playerNumber;
         private int troops;
+        private int territories;
     }
 
     @Builder
