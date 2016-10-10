@@ -13,10 +13,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -114,9 +111,9 @@ public class PlayerControllerTest {
     @Test
     public void getPlayer_returnsPlayerInGameWhosePlayerNumberMatchesRequest() throws Exception {
         List<Player> players = Arrays.asList(
-            Player.builder().playerNumber(1).name("zxmbies").build(),
-            Player.builder().playerNumber(2).name("qxc").build(),
-            Player.builder().playerNumber(3).name("eidlyn").build());
+                Player.builder().playerNumber(1).name("zxmbies").build(),
+                Player.builder().playerNumber(2).name("qxc").build(),
+                Player.builder().playerNumber(3).name("eidlyn").build());
         when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -145,10 +142,34 @@ public class PlayerControllerTest {
 
     @Test
     public void getPlayers_returnsListOfPlayersInGame() throws Exception {
+        List<PlayerTerritory> territories = Collections.singletonList(
+                PlayerTerritory.builder().gameName("gamename").territoryId(2L).troops(3).playerId(3L).territoryName("Cliffs 2").build());
+        List<PlayerTerritory> territories2 = Collections.singletonList(
+                PlayerTerritory.builder().gameName("gamename").territoryId(4L).troops(14).playerId(2L).territoryName("Hills 2").build());
+        List<PlayerTerritory> territories3 = Collections.singletonList(
+                PlayerTerritory.builder().gameName("gamename").territoryId(1L).troops(14).playerId(1L).territoryName("Hills 1").build());
         List<Player> players = Arrays.asList(
-                Player.builder().playerNumber(1).name("zxmbies").build(),
-                Player.builder().playerNumber(2).name("qxc").build(),
-                Player.builder().playerNumber(3).name("eidlyn").build());
+                Player.builder()
+                        .gameName("gamename")
+                        .name("zxmbies")
+                        .playerTerritoriesList(territories)
+                        .playerId(3L)
+                        .playerNumber(1)
+                        .build(),
+                Player.builder()
+                        .gameName("gamename")
+                        .name("qxc")
+                        .playerTerritoriesList(territories2)
+                        .playerId(3L)
+                        .playerNumber(2)
+                        .build(),
+                Player.builder()
+                        .gameName("gamename")
+                        .name("eidlyn")
+                        .playerTerritoriesList(territories3)
+                        .playerId(2L)
+                        .playerNumber(3)
+                        .build());
         when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
@@ -220,7 +241,7 @@ public class PlayerControllerTest {
                         .playerTerritoriesList(territories)
                         .playerId(3L)
                         .playerNumber(1)
-                .build());
+                        .build());
         when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
 
         MockHttpSession session = new MockHttpSession();
@@ -249,6 +270,61 @@ public class PlayerControllerTest {
                 "    ]\n" +
                 " }", JsonResponse, JSONCompareMode.LENIENT);
 
+    }
+
+
+
+    @Test
+    public void getPlayersIncludesTroopsInResponse() throws Exception {
+        List<PlayerTerritory> territories = Arrays.asList(
+                PlayerTerritory.builder().gameName("gamename").territoryId(1L).troops(2).playerId(3L).territoryName("Cliffs 1").build(),
+                PlayerTerritory.builder().gameName("gamename").territoryId(2L).troops(3).playerId(3L).territoryName("Cliffs 2").build());
+        List<PlayerTerritory> territories2 = Arrays.asList(
+                PlayerTerritory.builder().gameName("gamename").territoryId(3L).troops(7).playerId(2L).territoryName("Hills 1").build(),
+                PlayerTerritory.builder().gameName("gamename").territoryId(4L).troops(14).playerId(2L).territoryName("Hills 2").build());
+        List<Player> players = Arrays.asList(
+                Player.builder()
+                        .gameName("gamename")
+                        .name("player1")
+                        .playerTerritoriesList(territories)
+                        .playerId(3L)
+                        .playerNumber(1)
+                        .build(),
+                Player.builder()
+                        .gameName("gamename")
+                        .name("player2")
+                        .playerTerritoriesList(territories2)
+                        .playerId(2L)
+                        .playerNumber(2)
+                        .build());
+        when(mockRepository.findPlayersByGameName("gamename")).thenReturn(players);
+
+        MockHttpSession mockHttpSession = new MockHttpSession();
+        mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        String actualResponse = mockMvc.perform(get("/players").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        JSONAssert.assertEquals("[\n" +
+                "  {\"name\": \"player1\",\n" +
+                "    \"troops\": 5,\n" +
+                "    \"playerNumber\": 1,\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/players/1\"\n" +
+                "      }\n" +
+                "    ]},\n" +
+                "  {\"name\": \"player2\",\n" +
+                "    \"troops\": 21,\n" +
+                "    \"playerNumber\": 2,\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/players/2\"\n" +
+                "      }\n" +
+                "    ]}\n" +
+                "]", actualResponse, JSONCompareMode.LENIENT);
 
     }
+
 }

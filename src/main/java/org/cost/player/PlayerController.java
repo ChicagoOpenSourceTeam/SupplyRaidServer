@@ -127,8 +127,12 @@ public class PlayerController {
 
         List<AllPlayersPlayerResponse> allPlayersPlayerResponses = players
                 .stream()
-                .map(p -> new AllPlayersPlayerResponse(p.getName(), p.getPlayerNumber()))
-                .collect(Collectors.toList());
+                .map(p -> new AllPlayersPlayerResponse(
+                        p.getName(),
+                        p.getPlayerNumber(),
+                        p.getPlayerTerritoriesList().stream().mapToInt(PlayerTerritory::getTroops).sum())
+                )
+                        .collect(Collectors.toList());
         allPlayersPlayerResponses
                 .forEach(p -> p.add(
                         linkTo(
@@ -164,6 +168,7 @@ public class PlayerController {
     public static class AllPlayersPlayerResponse extends ResourceSupport {
         private String name;
         private int playerNumber;
+        private int troops;
     }
 
     @Builder
