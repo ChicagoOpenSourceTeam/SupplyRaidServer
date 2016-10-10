@@ -89,11 +89,11 @@ public class PlayerController {
                     .filter(p -> p.getPlayerNumber() == playerNumber)
                     .findFirst()
                     .get();
-            List<TerritoryResponse> territoryResponseList = new ArrayList<>();
+            List<TerritoryForSinglePlayerResponse> territoryResponseList = new ArrayList<>();
             if (player.getPlayerTerritoriesList() != null) {
                 player.getPlayerTerritoriesList()
                         .forEach(territory -> {
-                            TerritoryResponse territoryResponse = TerritoryResponse.builder()
+                            TerritoryForSinglePlayerResponse territoryResponse = TerritoryForSinglePlayerResponse.builder()
                                     .name(territory.getTerritoryName())
                                     .troops(territory.getTroops())
                                     .territoryId(territory.getTerritoryId())
@@ -154,7 +154,7 @@ public class PlayerController {
     public static class SinglePlayerResponse {
         private String name;
         private Long playerNumber;
-        private List<TerritoryResponse> ownedTerritories;
+        private List<TerritoryForSinglePlayerResponse> ownedTerritories;
     }
 
     @Builder
@@ -165,4 +165,17 @@ public class PlayerController {
         private String name;
         private int playerNumber;
     }
+
+    @Builder
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class TerritoryForSinglePlayerResponse extends ResourceSupport{
+        private String name;
+        private long troops;
+        private long territoryId;
+    }
+
+
+
 }

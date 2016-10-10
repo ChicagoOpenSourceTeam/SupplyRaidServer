@@ -227,6 +227,8 @@ public class TerritoryControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
+        System.out.println(response);
+
         JSONAssert.assertEquals("{\n" +
                 "  \"name\" : \"Location 1\",\n" +
                 "  \"owningPlayer\": {\n" +
