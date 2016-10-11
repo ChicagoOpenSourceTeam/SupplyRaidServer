@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -103,10 +104,23 @@ public class TerritoryController {
     }
 
     @RequestMapping(path = "territories", method = RequestMethod.GET)
-    public List<Territory> getTerritories(HttpSession session) {
+    public List<AllTerritoriesResponse> getTerritories(HttpSession session) {
         List<Territory> territories = territoryRepository.findAll();
-        territories.forEach(territory -> territory.add(linkTo(methodOn(TerritoryController.class).getTerritory(territory.getTerritoryId(), session)).withSelfRel()));
-        return territories;
+        List<AllTerritoriesResponse> territoriesResponse = new ArrayList<>();
+        territories
+                .forEach(territory -> {
+                    AllTerritoriesResponse terrritoryResponse = AllTerritoriesResponse.builder()
+                            .name(territory.getName())
+                            .build();
+                    terrritoryResponse
+                            .add(
+                                    linkTo(
+                                            methodOn(TerritoryController.class).getTerritory(territory.getTerritoryId(), session))
+                                            .withSelfRel());
+                    territoriesResponse.add(terrritoryResponse);
+                });
+
+        return territoriesResponse;
     }
 
     @RequestMapping(path = "/territories/owner", method = RequestMethod.POST)
@@ -182,5 +196,13 @@ public class TerritoryController {
     public static class TerritoryRequest {
         private int territoryId;
         private int playerNumber;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class AllTerritoriesResponse extends ResourceSupport {
+        private String name;
     }
 }

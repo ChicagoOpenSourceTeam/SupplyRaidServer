@@ -4,6 +4,7 @@ import lombok.*;
 import org.cost.player.Player;
 import org.cost.player.PlayerTerritory;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -32,5 +33,6 @@ public class Game {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "gameName")
     private List<PlayerTerritory> playerTerritories;
 
-    private int started;
+    @Type(type = "org.hibernate.type.NumericBooleanType")
+    private boolean started;
 }

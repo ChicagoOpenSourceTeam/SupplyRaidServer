@@ -2,6 +2,7 @@ package org.cost.player;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,9 @@ public class PlayerTerritory {
     private String gameName;
     private String territoryName;
     private int troops;
+
+    @Type(type = "org.hibernate.type.NumericBooleanType")
+    private boolean supplyDepot;
 
     @ManyToOne
     @JoinColumn(name = "playerId", insertable = false, updatable = false)

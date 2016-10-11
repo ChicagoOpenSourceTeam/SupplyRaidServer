@@ -1,0 +1,1 @@
+ALTER TABLE Player_territory ADD supply_depot INT DEFAULT 0;

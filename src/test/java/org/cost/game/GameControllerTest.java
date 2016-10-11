@@ -111,7 +111,7 @@ public class GameControllerTest {
                 .andExpect(status().isOk());
 
         verify(mockRepository).save(game);
-        assertThat(game.getStarted()).isEqualTo(1);
+        assertThat(game.isStarted());
     }
 
 
@@ -142,7 +142,7 @@ public class GameControllerTest {
 
     @Test
     public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
-        Game game = Game.builder().started(1).build();
+        Game game = Game.builder().started(true).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
 
         MockHttpSession session = new MockHttpSession();
@@ -158,7 +158,7 @@ public class GameControllerTest {
 
     @Test
     public void getGameEndpoint_returnsGameHasNotStarted_whenFalse() throws Exception{
-        Game game = Game.builder().started(0).build();
+        Game game = Game.builder().started(false).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
 
         MockHttpSession session = new MockHttpSession();

@@ -50,7 +50,7 @@ public class PlayerController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (gameRepository.findOne(createPlayerRequest.getGameName()).getStarted() == 1) {
+        if (gameRepository.findOne(createPlayerRequest.getGameName()).isStarted()) {
             return new ResponseEntity<>("The game has already started.", HttpStatus.CONFLICT);
         }
 
@@ -125,20 +125,22 @@ public class PlayerController {
             throw new Exceptions.ResourceNotFoundException();
         }
 
-        List<AllPlayersPlayerResponse> allPlayersPlayerResponses = players
-                .stream()
-                .map(p -> new AllPlayersPlayerResponse(
-                        p.getName(),
-                        p.getPlayerNumber(),
-                        p.getPlayerTerritoriesList().stream().mapToInt(PlayerTerritory::getTroops).sum(),
-                        ((int) p.getPlayerTerritoriesList().stream().count()))
-                )
-                        .collect(Collectors.toList());
-        allPlayersPlayerResponses
-                .forEach(p -> p.add(
-                        linkTo(
-                                methodOn(PlayerController.class).getPlayer(p.getPlayerNumber(), session))
-                                .withSelfRel())
+        List<AllPlayersPlayerResponse> allPlayersPlayerResponses = new ArrayList<>();
+        players
+                .forEach(p -> {
+                    AllPlayersPlayerResponse playerResponse = AllPlayersPlayerResponse.builder()
+                                    .name(p.getName())
+                                    .playerNumber(p.getPlayerNumber())
+                                    .troops(p.getPlayerTerritoriesList().stream().mapToInt(PlayerTerritory::getTroops).sum())
+                                    .territories((int) p.getPlayerTerritoriesList().stream().count())
+                                    .build();
+                    playerResponse
+                            .add(
+                                    linkTo(
+                                            methodOn(PlayerController.class).getPlayer(p.getPlayerNumber(), session))
+                                    .withSelfRel());
+                    allPlayersPlayerResponses.add(playerResponse);
+                        }
                 );
         return allPlayersPlayerResponses;
     }

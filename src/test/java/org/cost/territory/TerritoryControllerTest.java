@@ -98,34 +98,6 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
-        when(mockRepository.findAll()).thenReturn(Arrays.asList(
-                Territory.builder().name("Location 1").territoryId(1L).build(),
-                Territory.builder().name("Location 2").territoryId(2L).build()));
-
-        String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        JSONAssert.assertEquals("[\n" +
-                "  {\"name\": \"Location 1\",\n" +
-                "  \"links\": [\n" +
-                "    {\n" +
-                "      \"rel\": \"self\",\n" +
-                "      \"href\": \"http://localhost/territories/1\"\n" +
-                "    }\n" +
-                "  ]},\n" +
-                "  {\"name\": \"Location 2\",\n" +
-                "    \"links\": [\n" +
-                "      {\n" +
-                "        \"rel\": \"self\",\n" +
-                "        \"href\": \"http://localhost/territories/2\"\n" +
-                "      }\n" +
-                "    ]}\n" +
-                "]", response, JSONCompareMode.LENIENT);
-    }
-
-    @Test
     public void getOwnerofTerritory_returns_linkToOwnerOfTerritory() throws Exception {
         Player player = Player.builder().playerNumber(2).name("player").build();
         PlayerTerritory playerTerritory = PlayerTerritory.builder().playerId(30L).territoryId(1L).player(player).build();
@@ -242,6 +214,35 @@ public class TerritoryControllerTest {
                 "  \"troops\": 3\n" +
                 "}", response, JSONCompareMode.LENIENT);
 
+    }
 
+    @Test
+    public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
+        when(mockRepository.findAll()).thenReturn(Arrays.asList(
+                Territory.builder().name("Location 1").territoryId(1L).build(),
+                Territory.builder().name("Location 2").territoryId(2L).build()));
+
+        String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        System.out.print(response);
+
+        JSONAssert.assertEquals("[\n" +
+                "  {\"name\": \"Location 1\",\n" +
+                "  \"links\": [\n" +
+                "    {\n" +
+                "      \"rel\": \"self\",\n" +
+                "      \"href\": \"http://localhost/territories/1\"\n" +
+                "    }\n" +
+                "  ]},\n" +
+                "  {\"name\": \"Location 2\",\n" +
+                "    \"links\": [\n" +
+                "      {\n" +
+                "        \"rel\": \"self\",\n" +
+                "        \"href\": \"http://localhost/territories/2\"\n" +
+                "      }\n" +
+                "    ]}\n" +
+                "]", response, JSONCompareMode.STRICT);
     }
 }

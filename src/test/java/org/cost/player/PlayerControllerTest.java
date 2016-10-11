@@ -214,7 +214,7 @@ public class PlayerControllerTest {
 
     @Test
     public void postPlayer_returnsError_whenGameStarted() throws Exception {
-        Game game = Game.builder().gameName("Excalibur").started(1).build();
+        Game game = Game.builder().gameName("Excalibur").started(true).build();
         when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(new ArrayList<>(
                 Arrays.asList(
                         Player.builder().name("a").build(),

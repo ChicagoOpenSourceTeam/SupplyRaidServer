@@ -74,7 +74,7 @@ public class GameController {
         }
         int numberOfPlayers = game.getPlayers().size();
         if (numberOfPlayers >= 2) {
-            game.setStarted(1);
+            game.isStarted();
             gameRepository.save(game);
 
             List<Long> allTerritoryIds = new ArrayList<>();
@@ -162,7 +162,7 @@ public class GameController {
     public GameResponse getGame(HttpSession httpSession) {
         String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
         Game game = gameRepository.findOne(gameName);
-        if (game.getStarted() == 1) {
+        if (game.isStarted()) {
             return GameResponse.builder().gameStarted(true).build();
         } else {
             return GameResponse.builder().gameStarted(false).build();
