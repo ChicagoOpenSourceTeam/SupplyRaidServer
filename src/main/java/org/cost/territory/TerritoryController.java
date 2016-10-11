@@ -114,6 +114,7 @@ public class TerritoryController {
                             .name(territory.getTerritoryName())
                             .territoryId((territory.getTerritoryId().intValue()))
                             .supplyDepot((territory.isSupplyDepotTerritory()))
+                            .troops(territory.getTroops())
                             .build();
                     terrritoryResponse
                             .add(
@@ -209,5 +210,6 @@ public class TerritoryController {
         private String name;
         private int territoryId;
         private boolean supplyDepot;
+        private int troops;
     }
 }

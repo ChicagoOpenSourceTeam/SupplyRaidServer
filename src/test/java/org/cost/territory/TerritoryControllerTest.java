@@ -217,14 +217,14 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getTerritories_returnsListOfTerritoriesWithLinksIDsAndSupplyDepot() throws Exception {
+    public void getTerritories_returnsListOfTerritoriesWithLinksIDsTroopsAndSupplyDepot() throws Exception {
         when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(Arrays.asList(
                 PlayerTerritory.builder()
-                        .territoryName("Location 1").territoryId(1L).
-                        supplyDepotTerritory(false).build(),
+                        .territoryName("Location 1").territoryId(1L).troops(11)
+                        .supplyDepotTerritory(false).build(),
                 PlayerTerritory.builder()
-                        .territoryName("Location 2").territoryId(2L).
-                        supplyDepotTerritory(true).build()));
+                        .territoryName("Location 2").territoryId(2L).troops(3)
+                        .supplyDepotTerritory(true).build()));
 
 
         MockHttpSession session = new MockHttpSession();
@@ -239,6 +239,7 @@ public class TerritoryControllerTest {
                 "  {\"name\": \"Location 1\",\n" +
                 "    \"territoryId\": 1,\n" +
                 "    \"supplyDepot\": false,\n" +
+                "    \"troops\": 11,\n" +
                 "  \"links\": [\n" +
                 "    {\n" +
                 "      \"rel\": \"self\",\n" +
@@ -248,6 +249,7 @@ public class TerritoryControllerTest {
                 "  {\"name\": \"Location 2\",\n" +
                 "    \"territoryId\": 2,\n" +
                 "    \"supplyDepot\": true,\n" +
+                "    \"troops\": 3,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +
