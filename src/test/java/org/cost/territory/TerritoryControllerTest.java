@@ -217,12 +217,19 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getTerritories_returnsListOfTerritoriesWithLinksAndIDs() throws Exception {
-        when(mockRepository.findAll()).thenReturn(Arrays.asList(
-                Territory.builder().name("Location 1").territoryId(1L).build(),
-                Territory.builder().name("Location 2").territoryId(2L).build()));
+    public void getTerritories_returnsListOfTerritoriesWithLinksIDsAndSupplyDepot() throws Exception {
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(Arrays.asList(
+                PlayerTerritory.builder()
+                        .territoryName("Location 1").territoryId(1L).
+                        supplyDepotTerritory(false).build(),
+                PlayerTerritory.builder()
+                        .territoryName("Location 2").territoryId(2L).
+                        supplyDepotTerritory(true).build()));
 
-        String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON))
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        String response = mockMvc.perform(get("/territories").accept(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -231,6 +238,7 @@ public class TerritoryControllerTest {
         JSONAssert.assertEquals("[\n" +
                 "  {\"name\": \"Location 1\",\n" +
                 "    \"territoryId\": 1,\n" +
+                "    \"supplyDepot\": false,\n" +
                 "  \"links\": [\n" +
                 "    {\n" +
                 "      \"rel\": \"self\",\n" +
@@ -239,6 +247,7 @@ public class TerritoryControllerTest {
                 "  ]},\n" +
                 "  {\"name\": \"Location 2\",\n" +
                 "    \"territoryId\": 2,\n" +
+                "    \"supplyDepot\": true,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +

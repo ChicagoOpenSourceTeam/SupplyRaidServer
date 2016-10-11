@@ -105,13 +105,15 @@ public class TerritoryController {
 
     @RequestMapping(path = "territories", method = RequestMethod.GET)
     public List<AllTerritoriesResponse> getTerritories(HttpSession session) {
-        List<Territory> territories = territoryRepository.findAll();
+        List<PlayerTerritory> territories = playerTerritoryRepository.findByGameName(
+                (String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
         List<AllTerritoriesResponse> territoriesResponse = new ArrayList<>();
         territories
                 .forEach(territory -> {
                     AllTerritoriesResponse terrritoryResponse = AllTerritoriesResponse.builder()
-                            .name(territory.getName())
+                            .name(territory.getTerritoryName())
                             .territoryId((territory.getTerritoryId().intValue()))
+                            .supplyDepot((territory.isSupplyDepotTerritory()))
                             .build();
                     terrritoryResponse
                             .add(
@@ -206,5 +208,6 @@ public class TerritoryController {
     public static class AllTerritoriesResponse extends ResourceSupport {
         private String name;
         private int territoryId;
+        private boolean supplyDepot;
     }
 }
