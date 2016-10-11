@@ -5,7 +5,6 @@ import org.cost.player.Player;
 import org.cost.player.PlayerController;
 import org.cost.player.PlayerTerritory;
 import org.cost.player.PlayerTerritoryRepository;
-import org.cost.territory.Territory;
 import org.cost.territory.TerritoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 @RestController("/game")
 public class GameController {
@@ -115,6 +112,7 @@ public class GameController {
                 StartingLocation startingLocation = startingLocations.remove(0);
                 startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
                 startingLocation.getSupplyDepot().setTroops(8);
+                startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
                 savedPlayerTerritories.add(startingLocation.getSupplyDepot());
 
                 int numberOfSurroundingTerritories = (int)startingLocation.
@@ -127,6 +125,7 @@ public class GameController {
                 startingLocation = startingLocations.remove(0);
                 startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
                 startingLocation.getSupplyDepot().setTroops(8);
+                startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
                 savedPlayerTerritories.add(startingLocation.getSupplyDepot());
 
                 numberOfSurroundingTerritories = (int)startingLocation.

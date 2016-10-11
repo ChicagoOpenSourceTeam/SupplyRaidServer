@@ -22,7 +22,7 @@ public class PlayerTerritory {
     private int troops;
 
     @Type(type = "org.hibernate.type.NumericBooleanType")
-    private boolean supplyDepot;
+    private boolean supplyDepotTerritory;
 
     @ManyToOne
     @JoinColumn(name = "playerId", insertable = false, updatable = false)

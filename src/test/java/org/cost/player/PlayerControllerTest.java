@@ -275,14 +275,14 @@ public class PlayerControllerTest {
 
 
     @Test
-    public void getPlayersIncludesTroopsAndTerritoriesInResponse() throws Exception {
+    public void getPlayersIncludesTroopsTerritoriesAndSupplyDepotsInResponse() throws Exception {
         List<PlayerTerritory> territories = Arrays.asList(
                 PlayerTerritory.builder().gameName("gamename").territoryId(1L).troops(2).playerId(3L).territoryName("Cliffs 1").build(),
-                PlayerTerritory.builder().gameName("gamename").territoryId(2L).troops(3).playerId(3L).territoryName("Cliffs 2").build());
+                PlayerTerritory.builder().gameName("gamename").territoryId(2L).troops(3).playerId(3L).territoryName("Cliffs 2").supplyDepotTerritory(true).build());
         List<PlayerTerritory> territories2 = Arrays.asList(
                 PlayerTerritory.builder().gameName("gamename").territoryId(3L).troops(7).playerId(2L).territoryName("Hills 1").build(),
-                PlayerTerritory.builder().gameName("gamename").territoryId(9L).troops(0).playerId(2L).territoryName("Island 4").build(),
-                PlayerTerritory.builder().gameName("gamename").territoryId(4L).troops(14).playerId(2L).territoryName("Hills 2").build());
+                PlayerTerritory.builder().gameName("gamename").territoryId(9L).troops(0).playerId(2L).territoryName("Island 4").supplyDepotTerritory(true).build(),
+                PlayerTerritory.builder().gameName("gamename").territoryId(4L).troops(14).playerId(2L).territoryName("Hills 2").supplyDepotTerritory(true).build());
         List<Player> players = Arrays.asList(
                 Player.builder()
                         .gameName("gamename")
@@ -310,6 +310,7 @@ public class PlayerControllerTest {
                 "    \"troops\": 5,\n" +
                 "    \"territories\": 2,\n" +
                 "    \"playerNumber\": 1,\n" +
+                "    \"supplyDepots\": 1,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +
@@ -320,6 +321,7 @@ public class PlayerControllerTest {
                 "    \"troops\": 21,\n" +
                 "    \"playerNumber\": 2,\n" +
                 "    \"territories\": 3,\n" +
+                "    \"supplyDepots\": 2,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +

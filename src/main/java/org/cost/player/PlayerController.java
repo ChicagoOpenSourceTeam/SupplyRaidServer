@@ -5,11 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.cost.Exceptions;
-import org.cost.game.Game;
 import org.cost.game.GameRepository;
-import org.cost.territory.Territory;
 import org.cost.territory.TerritoryController;
-import org.cost.territory.TerritoryController.TerritoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.http.HttpStatus;
@@ -20,7 +17,6 @@ import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -133,7 +129,9 @@ public class PlayerController {
                                     .playerNumber(p.getPlayerNumber())
                                     .troops(p.getPlayerTerritoriesList().stream().mapToInt(PlayerTerritory::getTroops).sum())
                                     .territories((int) p.getPlayerTerritoriesList().stream().count())
-                                    .build();
+                                    .supplyDepots((int) p.getPlayerTerritoriesList()
+                                            .stream().filter(pt -> pt.isSupplyDepotTerritory()).count())
+                            .build();
                     playerResponse
                             .add(
                                     linkTo(
@@ -173,6 +171,7 @@ public class PlayerController {
         private int playerNumber;
         private int troops;
         private int territories;
+        private int supplyDepots;
     }
 
     @Builder
