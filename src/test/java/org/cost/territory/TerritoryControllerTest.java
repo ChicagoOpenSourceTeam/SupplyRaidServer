@@ -217,7 +217,7 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getTerritories_returnsListOfTerritoriesWithLinks() throws Exception {
+    public void getTerritories_returnsListOfTerritoriesWithLinksAndIDs() throws Exception {
         when(mockRepository.findAll()).thenReturn(Arrays.asList(
                 Territory.builder().name("Location 1").territoryId(1L).build(),
                 Territory.builder().name("Location 2").territoryId(2L).build()));
@@ -230,6 +230,7 @@ public class TerritoryControllerTest {
 
         JSONAssert.assertEquals("[\n" +
                 "  {\"name\": \"Location 1\",\n" +
+                "    \"territoryId\": 1,\n" +
                 "  \"links\": [\n" +
                 "    {\n" +
                 "      \"rel\": \"self\",\n" +
@@ -237,6 +238,7 @@ public class TerritoryControllerTest {
                 "    }\n" +
                 "  ]},\n" +
                 "  {\"name\": \"Location 2\",\n" +
+                "    \"territoryId\": 2,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +

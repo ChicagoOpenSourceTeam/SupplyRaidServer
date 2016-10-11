@@ -111,6 +111,7 @@ public class TerritoryController {
                 .forEach(territory -> {
                     AllTerritoriesResponse terrritoryResponse = AllTerritoriesResponse.builder()
                             .name(territory.getName())
+                            .territoryId((territory.getTerritoryId().intValue()))
                             .build();
                     terrritoryResponse
                             .add(
@@ -204,5 +205,6 @@ public class TerritoryController {
     @Builder
     public static class AllTerritoriesResponse extends ResourceSupport {
         private String name;
+        private int territoryId;
     }
 }
