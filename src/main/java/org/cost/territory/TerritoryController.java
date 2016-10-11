@@ -115,6 +115,9 @@ public class TerritoryController {
                             .territoryId((territory.getTerritoryId().intValue()))
                             .supplyDepot((territory.isSupplyDepotTerritory()))
                             .troops(territory.getTroops())
+                            .playerNumber(
+                                    (territory.getPlayer() == null) ? 0 :
+                                            territory.getPlayer().getPlayerNumber())
                             .build();
                     terrritoryResponse
                             .add(
@@ -126,6 +129,8 @@ public class TerritoryController {
 
         return territoriesResponse;
     }
+
+
 
     @RequestMapping(path = "/territories/owner", method = RequestMethod.POST)
     public ResponseEntity assignTerritoryToPlayer(@RequestBody TerritoryRequest territoryRequest, HttpSession session) {
@@ -211,5 +216,6 @@ public class TerritoryController {
         private int territoryId;
         private boolean supplyDepot;
         private int troops;
+        private Integer playerNumber;
     }
 }

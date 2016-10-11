@@ -217,13 +217,15 @@ public class TerritoryControllerTest {
     }
 
     @Test
-    public void getTerritories_returnsListOfTerritoriesWithLinksIDsTroopsAndSupplyDepot() throws Exception {
+    public void getTerritories_returnsListOfTerritoriesWithLinksIDsTroopsOwningPlayerNumberAndSupplyDepot() throws Exception {
+        Player player1 = Player.builder().playerNumber(1).build();
+        Player player2 = Player.builder().playerNumber(2).build();
         when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(Arrays.asList(
                 PlayerTerritory.builder()
-                        .territoryName("Location 1").territoryId(1L).troops(11)
+                        .territoryName("Location 1").territoryId(1L).troops(11).player(player1)
                         .supplyDepotTerritory(false).build(),
                 PlayerTerritory.builder()
-                        .territoryName("Location 2").territoryId(2L).troops(3)
+                        .territoryName("Location 2").territoryId(2L).troops(3).player(player2)
                         .supplyDepotTerritory(true).build()));
 
 
@@ -240,6 +242,7 @@ public class TerritoryControllerTest {
                 "    \"territoryId\": 1,\n" +
                 "    \"supplyDepot\": false,\n" +
                 "    \"troops\": 11,\n" +
+                "    \"playerNumber\": 1,\n" +
                 "  \"links\": [\n" +
                 "    {\n" +
                 "      \"rel\": \"self\",\n" +
@@ -250,6 +253,7 @@ public class TerritoryControllerTest {
                 "    \"territoryId\": 2,\n" +
                 "    \"supplyDepot\": true,\n" +
                 "    \"troops\": 3,\n" +
+                "    \"playerNumber\": 2,\n" +
                 "    \"links\": [\n" +
                 "      {\n" +
                 "        \"rel\": \"self\",\n" +
