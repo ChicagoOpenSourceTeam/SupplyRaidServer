@@ -1,10 +1,7 @@
 package org.cost.game;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cost.player.Player;
-import org.cost.player.PlayerController;
-import org.cost.player.PlayerTerritory;
-import org.cost.player.PlayerTerritoryRepository;
+import org.cost.player.*;
 import org.cost.territory.Territory;
 import org.cost.territory.TerritoryRepository;
 import org.junit.Before;
@@ -38,6 +35,7 @@ public class GameControllerTest {
 
     TerritoryRepository mockTerritoryRepository;
     PlayerTerritoryRepository mockPlayerTerritoryRepository;
+    private SuppliedStatusService mockSuppliedStatusService;
 
 
     @Before
@@ -45,7 +43,8 @@ public class GameControllerTest {
         mockRepository = mock(GameRepository.class);
         mockTerritoryRepository = mock(TerritoryRepository.class);
         mockPlayerTerritoryRepository = mock(PlayerTerritoryRepository.class);
-        GameController gameController = new GameController(mockRepository, mockTerritoryRepository, mockPlayerTerritoryRepository);
+        mockSuppliedStatusService = mock(SuppliedStatusService.class);
+        GameController gameController = new GameController(mockRepository, mockTerritoryRepository, mockPlayerTerritoryRepository, mockSuppliedStatusService);
         mockMvc = MockMvcBuilders.standaloneSetup(gameController).build();
     }
 
@@ -114,6 +113,22 @@ public class GameControllerTest {
         assertThat(game.isStarted());
     }
 
+
+    @Test
+    public void startGameRequest_callsMarkUnsupplied_inSupplyService() throws Exception {
+        List<Player> players = Arrays.asList(new Player(), new Player());
+        Game game = Game.builder().gameName("gamename").players(players).build();
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+        List<Territory> territories = generateTerritoriesForTest();
+        when(mockTerritoryRepository.findAll()).thenReturn(territories);
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session));
+
+        verify(mockSuppliedStatusService).markUnsupplied();
+    }
 
 
     @Test
@@ -302,7 +317,6 @@ public class GameControllerTest {
         }
         assertThat(totalTroops).isEqualTo(80); // (8 troops per depot + 12 troops per adjacent)*2depotsperplayer*2players
     }
-
 
 
     private List<PlayerTerritory> generatePlayerTerritoriesForTest() {

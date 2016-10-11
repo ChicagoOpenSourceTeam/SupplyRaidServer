@@ -122,7 +122,8 @@ public class TerritoryController {
                     terrritoryResponse
                             .add(
                                     linkTo(
-                                            methodOn(TerritoryController.class).getTerritory(territory.getTerritoryId(), session))
+                                            methodOn(TerritoryController.class).getTerritory(
+                                                    territory.getTerritoryId(), session))
                                             .withSelfRel());
                     territoriesResponse.add(terrritoryResponse);
                 });

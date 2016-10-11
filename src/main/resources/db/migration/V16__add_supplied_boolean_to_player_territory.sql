@@ -1,0 +1,1 @@
+ALTER TABLE Player_territory ADD supplied INT DEFAULT 0;

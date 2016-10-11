@@ -1,10 +1,7 @@
 package org.cost.game;
 
 import lombok.*;
-import org.cost.player.Player;
-import org.cost.player.PlayerController;
-import org.cost.player.PlayerTerritory;
-import org.cost.player.PlayerTerritoryRepository;
+import org.cost.player.*;
 import org.cost.territory.TerritoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,12 +18,14 @@ public class GameController {
     private GameRepository gameRepository;
     private TerritoryRepository territoryRepository;
     private PlayerTerritoryRepository playerTerritoryRepository;
+    private SuppliedStatusService suppliedStatusService;
 
     @Autowired
-    public GameController(GameRepository gameRepository, TerritoryRepository territoryRepository, PlayerTerritoryRepository playerTerritoryRepository) {
+    public GameController(GameRepository gameRepository, TerritoryRepository territoryRepository, PlayerTerritoryRepository playerTerritoryRepository, SuppliedStatusService suppliedStatusService) {
         this.gameRepository = gameRepository;
         this.territoryRepository = territoryRepository;
         this.playerTerritoryRepository = playerTerritoryRepository;
+        this.suppliedStatusService = suppliedStatusService;
     }
 
     @RequestMapping(path = "/game", method = RequestMethod.POST)
@@ -136,6 +135,7 @@ public class GameController {
                         startingLocation, troopsPerSurroundingTerritory);
             }
             playerTerritoryRepository.save(savedPlayerTerritories);
+            suppliedStatusService.markUnsupplied();
 
             return new ResponseEntity(HttpStatus.OK);
         }
