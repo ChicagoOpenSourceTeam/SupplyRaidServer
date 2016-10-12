@@ -114,6 +114,7 @@ public class TerritoryController {
                             .name(territory.getTerritoryName())
                             .territoryId((territory.getTerritoryId().intValue()))
                             .supplyDepot((territory.isSupplyDepotTerritory()))
+                            .supplied(territory.isSupplied())
                             .troops(territory.getTroops())
                             .playerNumber(
                                     (territory.getPlayer() == null) ? 0 :
@@ -216,6 +217,7 @@ public class TerritoryController {
         private String name;
         private int territoryId;
         private boolean supplyDepot;
+        private boolean supplied;
         private int troops;
         private Integer playerNumber;
     }
