@@ -35,6 +35,14 @@ public class BoardControllerTest {
     }
 
     @Test
+    public void getBoard_returns404_whenNoSessionFound() throws Exception {
+        MockHttpSession mockHttpSession = new MockHttpSession();
+
+        mockMvc.perform(get("/board").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void getBoard_returnsBoardDetails() throws Exception {
         List<PlayerTerritory> territories = Arrays.asList(
                 PlayerTerritory.builder().gameName("gamename").territoryId(1L).troops(2).playerId(3L).territoryName("Cliffs 1").build(),

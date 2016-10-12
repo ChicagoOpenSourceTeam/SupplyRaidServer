@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.cost.Exceptions;
 import org.cost.player.*;
 import org.cost.territory.TerritoryController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,9 @@ public class BoardController {
     @RequestMapping(path = "/board", method = RequestMethod.GET)
     public BoardResponse getBoard(HttpSession session) {
         String gamename = (String) session.getAttribute(SESSION_GAME_NAME_FIELD);
+        if (gamename == null) {
+            throw new Exceptions.ResourceNotFoundException();
+        }
         List<Player> players = playerRepository.findPlayersByGameName(gamename);
         List<PlayerTerritory> territories = playerTerritoryRepository.findByGameName(gamename);
         BoardResponse.BoardResponseBuilder builder = BoardResponse.builder();
