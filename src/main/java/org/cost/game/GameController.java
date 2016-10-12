@@ -112,6 +112,7 @@ public class GameController {
                 startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
                 startingLocation.getSupplyDepot().setTroops(8);
                 startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
+                startingLocation.getSupplyDepot().setPlayer(player);
                 savedPlayerTerritories.add(startingLocation.getSupplyDepot());
 
                 int numberOfSurroundingTerritories = (int)startingLocation.
@@ -125,6 +126,7 @@ public class GameController {
                 startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
                 startingLocation.getSupplyDepot().setTroops(8);
                 startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
+                startingLocation.getSupplyDepot().setPlayer(player);
                 savedPlayerTerritories.add(startingLocation.getSupplyDepot());
 
                 numberOfSurroundingTerritories = (int)startingLocation.
@@ -145,7 +147,8 @@ public class GameController {
                                         .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
                                         .findFirst()
                                         .get()
-                            ).collect(Collectors.toList()), playerTerritories);
+                            ).collect(Collectors.toList()),
+                    playerTerritoryRepository.findByGameName(gameName));
 
             return new ResponseEntity(HttpStatus.OK);
         }
@@ -162,6 +165,7 @@ public class GameController {
                         surroundingTerritory -> {
                             surroundingTerritory.setPlayerId(player.getPlayerId());
                             surroundingTerritory.setTroops(troopsPerSurroundingTerritory);
+                            surroundingTerritory.setPlayer(player);
                             savedPlayerTerritories.add(surroundingTerritory);
                         }
                 );
