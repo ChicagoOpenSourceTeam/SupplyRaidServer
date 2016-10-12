@@ -7,6 +7,8 @@ import org.cost.territory.TerritoryRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.http.MediaType;
@@ -115,19 +117,29 @@ public class GameControllerTest {
 
 
     @Test
-    public void startGameRequest_callsMarkUnsupplied_inSupplyService() throws Exception {
-        List<Player> players = Arrays.asList(new Player(), new Player());
+    public void startGameRequest_callsMarkUnsuppliedThenSupplied_inSupplyService() throws Exception {
+        List<Player> players = Arrays.asList(Player.builder().playerId(10L).build(), Player.builder().playerId(20L).build());
         Game game = Game.builder().gameName("gamename").players(players).build();
         when(mockRepository.findOne("gamename")).thenReturn(game);
         List<Territory> territories = generateTerritoriesForTest();
         when(mockTerritoryRepository.findAll()).thenReturn(territories);
-        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(generatePlayerTerritoriesForTest());
-
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        List<PlayerTerritory> playerTerritories = generatePlayerTerritoriesForTest();
+        when(mockPlayerTerritoryRepository.findByGameName("gamename")).thenReturn(playerTerritories);
+
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session));
 
-        verify(mockSuppliedStatusService).markUnsupplied();
+        InOrder inOrder = inOrder(mockSuppliedStatusService);
+        inOrder.verify(mockSuppliedStatusService).markUnsupplied();
+        ArgumentCaptor<List> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        inOrder.verify(mockSuppliedStatusService).markSupplied(listArgumentCaptor.capture(), eq(playerTerritories));
+
+        List<PlayerTerritory> value = (List<PlayerTerritory>) listArgumentCaptor.getValue();
+        assertThat(value
+                .stream()
+                .map(PlayerTerritory::getTerritoryId)
+                .collect(Collectors.toList())).containsExactlyInAnyOrder(5L, 10L, 15L, 20L);
     }
 
 

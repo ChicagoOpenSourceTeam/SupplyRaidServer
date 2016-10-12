@@ -136,6 +136,16 @@ public class GameController {
             }
             playerTerritoryRepository.save(savedPlayerTerritories);
             suppliedStatusService.markUnsupplied();
+            suppliedStatusService.markSupplied(
+                    territoryRepository.findAll()
+                            .stream()
+                            .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
+                            .map(territory ->
+                                playerTerritories.stream()
+                                        .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
+                                        .findFirst()
+                                        .get()
+                            ).collect(Collectors.toList()), playerTerritories);
 
             return new ResponseEntity(HttpStatus.OK);
         }

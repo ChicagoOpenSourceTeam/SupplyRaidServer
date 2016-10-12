@@ -56,17 +56,39 @@ public class SuppliedStatusService {
                             .stream()
                             .filter(id -> id != null)
                             .forEach(
-                                   each -> mappedTerritory.getNeighboringTerritories().add(nodes.get(each)));
+                                    each -> mappedTerritory.getNeighboringTerritories().add(nodes.get(each)));
 
-                } );
-
-        
+                });
 
 
+        List<MappedTerritory> mappedSupplyDepots = supplyDepots
+                .stream()
+                .map(sd -> nodes.get(sd.getTerritoryId()))
+                .collect(Collectors.toList());
 
+        markAllNeighbors(mappedSupplyDepots);
 
         playerTerritoryRepository.save(allPlayerTerritories);
     }
+
+    private void markAllNeighbors(List<MappedTerritory> currentNodes) {
+        currentNodes
+                .forEach(currentNode -> {
+                    currentNode.getPlayerTerritory().setSupplied(true);
+
+                    List<MappedTerritory> viableNeighbors = currentNode.getNeighboringTerritories()
+                            .stream()
+                            .filter(mt -> !mt.getPlayerTerritory().isSupplied())
+                            .filter(mt -> mt.getPlayerTerritory().getPlayer() != null &&
+                                    currentNode.getPlayerTerritory().getPlayer().getPlayerNumber() ==
+                                    mt.getPlayerTerritory().getPlayer().getPlayerNumber())
+                            .collect(Collectors.toList());
+
+                    markAllNeighbors(viableNeighbors);
+                });
+    }
+
+
     @Getter
     @Setter
     @EqualsAndHashCode
