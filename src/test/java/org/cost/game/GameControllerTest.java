@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -112,7 +113,7 @@ public class GameControllerTest {
                 .andExpect(status().isOk());
 
         verify(mockRepository).save(game);
-        assertThat(game.isStarted());
+        assertTrue(game.isStarted());
     }
 
 

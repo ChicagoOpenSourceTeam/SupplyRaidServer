@@ -70,7 +70,7 @@ public class GameController {
         }
         int numberOfPlayers = game.getPlayers().size();
         if (numberOfPlayers >= 2) {
-            game.isStarted();
+            game.setStarted(true);
             gameRepository.save(game);
 
             List<Long> allTerritoryIds = new ArrayList<>();
