@@ -26,6 +26,7 @@ public class PlayerController {
 
     public static final int MAX_PLAYERS_ALLOWED_IN_GAME = 4;
     public static final String SESSION_GAME_NAME_FIELD = "game_name";
+    public static final String SESSION_PLAYER_NUMBER_FIELD = "player_number";
     private PlayerRepository playerRepository;
     private PlayerNumberService playerNumberService;
     private GameRepository gameRepository;
@@ -55,12 +56,14 @@ public class PlayerController {
             return gameJoinError;
         }
 
+        int nextPlayerNumber = playerNumberService.getNextPlayerNumber(playerNumberService.getNumberOfPlayersInGame(players));
         playerRepository.save(Player.builder()
                 .gameName(createPlayerRequest.getGameName())
                 .name(createPlayerRequest.getPlayerName())
-                .playerNumber(playerNumberService.getNextPlayerNumber(playerNumberService.getNumberOfPlayersInGame(players)))
+                .playerNumber(nextPlayerNumber)
                 .build());
         httpSession.setAttribute(SESSION_GAME_NAME_FIELD, createPlayerRequest.getGameName());
+        httpSession.setAttribute(SESSION_PLAYER_NUMBER_FIELD, nextPlayerNumber);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

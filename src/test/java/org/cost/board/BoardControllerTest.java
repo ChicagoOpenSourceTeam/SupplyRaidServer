@@ -74,12 +74,14 @@ public class BoardControllerTest {
 
         MockHttpSession mockHttpSession = new MockHttpSession();
         mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        mockHttpSession.setAttribute(PlayerController.SESSION_PLAYER_NUMBER_FIELD, 2);
 
         String actualResponse = mockMvc.perform(get("/board").contentType(MediaType.APPLICATION_JSON).session(mockHttpSession))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
 
         JSONAssert.assertEquals("{\n" +
+                "  \"playerNumber\": 2,\n" +
                 "  \"territories\": [\n" +
                 "    {\n" +
                 "      \"name\": \"Location 1\",\n" +

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.cost.player.PlayerController.SESSION_GAME_NAME_FIELD;
+import static org.cost.player.PlayerController.SESSION_PLAYER_NUMBER_FIELD;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -80,6 +81,7 @@ public class BoardController {
                 });
 
         builder.territories(territoriesResponse);
+        builder.playerNumber((Integer) session.getAttribute(SESSION_PLAYER_NUMBER_FIELD));
 
         return builder.build();
     }
@@ -89,6 +91,7 @@ public class BoardController {
     @AllArgsConstructor
     @Builder
     public static class BoardResponse {
+        Integer playerNumber;
         List<TerritoryController.AllTerritoriesResponse> territories;
         List<PlayerController.AllPlayersPlayerResponse> players;
     }

@@ -58,7 +58,7 @@ public class PlayerControllerTest {
     }
 
     @Test
-    public void getPlayer_savesGameToHttpSession() throws Exception {
+    public void postPlayer_savesGameToHttpSession() throws Exception {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player[]{null}));
         when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(players);
         when(mockGameRepository.findOne(anyString())).thenReturn(new Game());
@@ -67,6 +67,21 @@ public class PlayerControllerTest {
         mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()).session(httpSession));
 
         assertThat(httpSession.getAttribute("game_name")).isEqualTo("Excalibur");
+    }
+
+    @Test
+    public void postPlayer_savesPlayerNumberToHttpSession() throws Exception {
+        ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player[]{null}));
+        when(mockRepository.findPlayersByGameName("Excalibur")).thenReturn(players);
+        when(mockGameRepository.findOne(anyString())).thenReturn(new Game());
+        when(mockPlayerNumberService.getNumberOfPlayersInGame(players)).thenReturn(0);
+        when(mockPlayerNumberService.getNextPlayerNumber(0)).thenReturn(1);
+
+
+        MockHttpSession httpSession = new MockHttpSession();
+        mockMvc.perform(post("/players").contentType(MediaType.APPLICATION_JSON).content(getPostRequestContentString()).session(httpSession));
+
+        assertThat(httpSession.getAttribute("player_number")).isEqualTo(1);
     }
 
     @Test
