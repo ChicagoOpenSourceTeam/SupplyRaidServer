@@ -33,7 +33,7 @@ public class PlayerTerritory {
     Player player;
 
     @ManyToOne
-    @JoinColumn(name = "territoryName", insertable = false, updatable = false)
+    @JoinColumn(name = "territoryId", insertable = false, updatable = false)
     Territory territory;
 
     @Id
