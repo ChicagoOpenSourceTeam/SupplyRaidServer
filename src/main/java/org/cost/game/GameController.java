@@ -70,9 +70,6 @@ public class GameController {
         }
         int numberOfPlayers = game.getPlayers().size();
         if (numberOfPlayers >= 2) {
-            game.setStarted(true);
-            gameRepository.save(game);
-
             List<Long> allTerritoryIds = new ArrayList<>();
 
             List<PlayerTerritory> playerTerritories = playerTerritoryRepository.findByGameName(gameName);
@@ -149,6 +146,9 @@ public class GameController {
                                         .get()
                             ).collect(Collectors.toList()),
                     playerTerritoryRepository.findByGameName(gameName));
+
+            game.setStarted(true);
+            gameRepository.save(game);
 
             return new ResponseEntity(HttpStatus.OK);
         }
