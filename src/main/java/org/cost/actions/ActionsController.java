@@ -31,7 +31,8 @@ public class ActionsController {
     @RequestMapping(value = "/actions/skip-action", method = RequestMethod.POST)
     ResponseEntity skipAction(HttpSession session) {
         Game game = gameRepository.findOne((String) session.getAttribute(SESSION_GAME_NAME_FIELD));
-        int currentTurnPlayerNumber = game.getTurnNumber() % game.getPlayers().size() == 0 ? game.getPlayers().size() : game.getTurnNumber() % game.getPlayers().size();
+        int turnNumber = game.getTurnNumber();
+        int currentTurnPlayerNumber = turnNumber % game.getPlayers().size() == 0 ? game.getPlayers().size() : game.getTurnNumber() % game.getPlayers().size();
 
         Integer playerNumber = (Integer) session.getAttribute(PlayerController.SESSION_PLAYER_NUMBER_FIELD);
         if (currentTurnPlayerNumber != playerNumber) {
@@ -42,9 +43,16 @@ public class ActionsController {
                 .filter(player -> player.getPlayerNumber() == playerNumber)
                 .findFirst()
                 .get();
-        currentPlayer.setRemainingActions(currentPlayer.getRemainingActions() - 1);
 
-        playerRepository.save(currentPlayer);
+        int remainingActions = currentPlayer.getRemainingActions() - 1;
+        if (remainingActions == 0) {
+            currentPlayer.setRemainingActions(3);
+            game.setTurnNumber(turnNumber + 1);
+        } else {
+            currentPlayer.setRemainingActions(remainingActions);
+        }
+
+        gameRepository.save(game);
 
         return new ResponseEntity(HttpStatus.OK);
     }

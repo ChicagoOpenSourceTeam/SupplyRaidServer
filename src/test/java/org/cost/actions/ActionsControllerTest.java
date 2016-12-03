@@ -50,12 +50,12 @@ public class ActionsControllerTest {
 
         mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isOk());
 
-        verify(mockPlayerRepository).save(thisPlayer);
+        verify(mockGameRepository).save(game);
         assertThat(thisPlayer.getRemainingActions()).isEqualTo(2);
     }
 
     @Test
-    public void skip_returnsForbiddenStatus_whenPlayerIsNotActivePlayer() throws Exception {
+    public void skipAction_returnsForbiddenStatus_whenPlayerIsNotActivePlayer() throws Exception {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(SESSION_PLAYER_NUMBER_FIELD, 3);
         session.setAttribute(SESSION_GAME_NAME_FIELD, "gamename");
@@ -74,6 +74,25 @@ public class ActionsControllerTest {
 
         mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isForbidden());
 
-        verifyZeroInteractions(mockPlayerRepository);
+        verify(mockGameRepository, times(0)).save(any(Game.class));
+    }
+
+    @Test
+    public void skipAction_changesTurn_andSetsRemainingActionsToThree_whenRemainingActionsAreOne() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(SESSION_PLAYER_NUMBER_FIELD, 2);
+        session.setAttribute(SESSION_GAME_NAME_FIELD, "gamename");
+
+        Game game = new Game();
+        game.setTurnNumber(5);
+        Player thisPlayer = Player.builder().playerNumber(2).remainingActions(1).build();
+        game.setPlayers(Arrays.asList(new Player(), thisPlayer, new Player()));
+        when(mockGameRepository.findOne("gamename")).thenReturn(game);
+
+        mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isOk());
+
+        verify(mockGameRepository).save(game);
+        assertThat(game.getTurnNumber()).isEqualTo(6);
+        assertThat(thisPlayer.getRemainingActions()).isEqualTo(3);
     }
 }
