@@ -1,5 +1,9 @@
 package org.cost.actions;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.cost.game.Game;
 import org.cost.game.GameRepository;
 import org.cost.player.Player;
@@ -54,6 +58,14 @@ public class ActionsController {
 
         gameRepository.save(game);
 
-        return new ResponseEntity(HttpStatus.OK);
+        return ResponseEntity.ok(ActionsResponse.builder().actionsRemaining(remainingActions).build());
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class ActionsResponse {
+        private int actionsRemaining;
     }
 }

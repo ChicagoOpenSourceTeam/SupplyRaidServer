@@ -7,6 +7,7 @@ import org.cost.player.PlayerController;
 import org.cost.player.PlayerRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cost.player.PlayerController.SESSION_GAME_NAME_FIELD;
 import static org.cost.player.PlayerController.SESSION_PLAYER_NUMBER_FIELD;
 import static org.mockito.Mockito.*;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,10 +50,15 @@ public class ActionsControllerTest {
         game.setPlayers(Arrays.asList(new Player(), thisPlayer, new Player()));
         when(mockGameRepository.findOne("gamename")).thenReturn(game);
 
-        mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isOk());
+        String contentAsString = mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        ;
 
         verify(mockGameRepository).save(game);
         assertThat(thisPlayer.getRemainingActions()).isEqualTo(2);
+        assertEquals("{\n" +
+                "  \"actionsRemaining\": 2\n" +
+                "}", contentAsString, JSONCompareMode.NON_EXTENSIBLE);
     }
 
     @Test
@@ -89,10 +96,15 @@ public class ActionsControllerTest {
         game.setPlayers(Arrays.asList(new Player(), thisPlayer, new Player()));
         when(mockGameRepository.findOne("gamename")).thenReturn(game);
 
-        mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isOk());
+        String contentAsString = mockMvc.perform(post("/actions/skip-action").contentType(MediaType.APPLICATION_JSON).session(session)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        ;
 
         verify(mockGameRepository).save(game);
         assertThat(game.getTurnNumber()).isEqualTo(6);
         assertThat(thisPlayer.getRemainingActions()).isEqualTo(3);
+        assertEquals("{\n" +
+                "  \"actionsRemaining\": 0\n" +
+                "}", contentAsString, JSONCompareMode.NON_EXTENSIBLE);
     }
 }
