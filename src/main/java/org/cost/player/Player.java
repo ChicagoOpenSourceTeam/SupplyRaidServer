@@ -19,6 +19,7 @@ public class Player extends ResourceSupport {
     private String name;
 
     private String gameName;
+    private int remainingActions;
 
     @JsonIgnore
     public String getGameName() {

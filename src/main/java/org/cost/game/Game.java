@@ -35,4 +35,6 @@ public class Game {
 
     @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean started;
+
+    private int turnNumber;
 }

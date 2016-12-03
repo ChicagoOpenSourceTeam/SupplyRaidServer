@@ -61,6 +61,7 @@ public class PlayerController {
                 .gameName(createPlayerRequest.getGameName())
                 .name(createPlayerRequest.getPlayerName())
                 .playerNumber(nextPlayerNumber)
+                .remainingActions(3)
                 .build());
         httpSession.setAttribute(SESSION_GAME_NAME_FIELD, createPlayerRequest.getGameName());
         httpSession.setAttribute(SESSION_PLAYER_NUMBER_FIELD, nextPlayerNumber);

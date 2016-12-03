@@ -6,8 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.cost.Exceptions;
+import org.cost.game.Game;
+import org.cost.game.GameRepository;
 import org.cost.player.*;
 import org.cost.territory.TerritoryController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,10 +28,13 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 public class BoardController {
     private final PlayerTerritoryRepository playerTerritoryRepository;
     private final PlayerRepository playerRepository;
+    private final GameRepository gameRepository;
 
-    public BoardController(PlayerTerritoryRepository playerTerritoryRepository, PlayerRepository playerRepository) {
+    @Autowired
+    public BoardController(PlayerTerritoryRepository playerTerritoryRepository, PlayerRepository playerRepository, GameRepository gameRepository) {
         this.playerTerritoryRepository = playerTerritoryRepository;
         this.playerRepository = playerRepository;
+        this.gameRepository = gameRepository;
     }
 
     @RequestMapping(path = "/board", method = RequestMethod.GET)
@@ -86,6 +92,11 @@ public class BoardController {
 
         builder.territories(territoriesResponse);
         builder.playerNumber((Integer) session.getAttribute(SESSION_PLAYER_NUMBER_FIELD));
+        int turnNumber = gameRepository.findOne((String) session.getAttribute(SESSION_GAME_NAME_FIELD)).getTurnNumber();
+        builder.turnNumber(turnNumber);
+        int activePlayer = turnNumber % players.size() == 0 ? players.size() : turnNumber % players.size();
+        builder.activePlayer(activePlayer);
+        builder.remainingActions(players.stream().filter(player -> player.getPlayerNumber() == activePlayer).findFirst().get().getRemainingActions());
 
         return builder.build();
     }
@@ -98,5 +109,8 @@ public class BoardController {
         Integer playerNumber;
         List<TerritoryController.AllTerritoriesResponse> territories;
         List<PlayerController.AllPlayersPlayerResponse> players;
+        int turnNumber;
+        int activePlayer;
+        int remainingActions;
     }
 }

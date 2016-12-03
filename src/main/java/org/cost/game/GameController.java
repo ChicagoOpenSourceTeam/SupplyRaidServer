@@ -43,7 +43,9 @@ public class GameController {
                     });
             Game game = Game.builder()
                     .gameName(gameRequest.getGameName())
-                    .playerTerritories(playerTerritories).build();
+                    .playerTerritories(playerTerritories)
+                    .turnNumber(1)
+                    .build();
             gameRepository.save(game);
             return new ResponseEntity(HttpStatus.OK);
         }

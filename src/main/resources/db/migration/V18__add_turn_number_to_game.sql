@@ -1,0 +1,1 @@
+ALTER TABLE Player add remaining_actions int default 3;

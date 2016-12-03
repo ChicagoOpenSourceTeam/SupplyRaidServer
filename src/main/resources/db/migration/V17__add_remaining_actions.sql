@@ -1,0 +1,1 @@
+ALTER TABLE Game add turn_number int default 1;

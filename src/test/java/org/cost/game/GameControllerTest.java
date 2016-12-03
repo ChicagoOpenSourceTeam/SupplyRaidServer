@@ -61,7 +61,7 @@ public class GameControllerTest {
         mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
                 .andExpect(status().isOk());
 
-        Game game = Game.builder().gameName("Game Name").playerTerritories(new ArrayList<>()).build();
+        Game game = Game.builder().gameName("Game Name").playerTerritories(new ArrayList<>()).turnNumber(1).build();
         verify(mockRepository).save(game);
     }
 

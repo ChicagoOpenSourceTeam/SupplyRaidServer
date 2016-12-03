@@ -1,5 +1,7 @@
 package org.cost.board;
 
+import org.cost.game.Game;
+import org.cost.game.GameRepository;
 import org.cost.player.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,12 +26,14 @@ public class BoardControllerTest {
     private PlayerTerritoryRepository mockPlayerTerritoryRepository;
     private PlayerRepository mockPlayerRepository;
     private MockMvc mockMvc;
+    private GameRepository mockGameRepository;
 
     @Before
     public void setup() {
         mockPlayerTerritoryRepository = mock(PlayerTerritoryRepository.class);
         mockPlayerRepository = mock(PlayerRepository.class);
-        BoardController boardController = new BoardController(mockPlayerTerritoryRepository, mockPlayerRepository);
+        mockGameRepository = mock(GameRepository.class);
+        BoardController boardController = new BoardController(mockPlayerTerritoryRepository, mockPlayerRepository, mockGameRepository);
 
         mockMvc = MockMvcBuilders.standaloneSetup(boardController).build();
     }
@@ -57,6 +61,7 @@ public class BoardControllerTest {
                 .playerTerritoriesList(territories)
                 .playerId(3L)
                 .playerNumber(1)
+                .remainingActions(3)
                 .build();
         Player player2 = Player.builder()
                 .gameName("gamename")
@@ -64,6 +69,7 @@ public class BoardControllerTest {
                 .playerTerritoriesList(territories2)
                 .playerId(2L)
                 .playerNumber(2)
+                .remainingActions(0)
                 .build();
         List<Player> players = Arrays.asList(
                 player1,
@@ -79,6 +85,9 @@ public class BoardControllerTest {
                         .territoryName("Location 2").territoryId(2L).troops(3).player(player2)
                         .supplyDepotTerritory(true).supplied(true).build()));
 
+        Game game = new Game();
+        game.setTurnNumber(3);
+        when(mockGameRepository.findOne("gamename")).thenReturn(game);
 
         MockHttpSession mockHttpSession = new MockHttpSession();
         mockHttpSession.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
@@ -147,7 +156,10 @@ public class BoardControllerTest {
                 "        }\n" +
                 "      ]\n" +
                 "    }\n" +
-                "  ]\n" +
+                "  ],\n" +
+                "  \"turnNumber\": 3,\n" +
+                "  \"activePlayer\": 1,\n" +
+                "  \"remainingActions\": 3\n" +
                 "}", actualResponse, JSONCompareMode.LENIENT);
     }
 }
