@@ -70,6 +70,10 @@ public class GameController {
         if (game == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
+        if (game.isStarted()) {
+            return new ResponseEntity(HttpStatus.CONFLICT);
+        }
+
         int numberOfPlayers = game.getPlayers().size();
         if (numberOfPlayers >= 2) {
             List<Long> allTerritoryIds = new ArrayList<>();
@@ -172,7 +176,7 @@ public class GameController {
                         }
                 );
     }
-
+    
     @RequestMapping(path = "/game", method = RequestMethod.GET)
     public GameResponse getGame(HttpSession httpSession) {
         String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
@@ -182,7 +186,6 @@ public class GameController {
         } else {
             return GameResponse.builder().gameStarted(false).build();
         }
-
     }
 
 

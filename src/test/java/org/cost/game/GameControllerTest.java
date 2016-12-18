@@ -167,6 +167,20 @@ public class GameControllerTest {
                 .andExpect(status().isConflict());
     }
 
+    @Test
+    public void startGameRequest_returnsConflict_whenGameAlreadyStarted() throws Exception {
+        List<Player> players = Arrays.asList(new Player(), new Player());
+        Game game = Game.builder().gameName("gamename").players(players).started(true).build();
+
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+
+        mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isConflict());
+    }
+
 
     @Test
     public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
