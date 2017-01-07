@@ -41,7 +41,7 @@ public class BoardController {
     public BoardResponse getBoard(HttpSession session) {
         String gamename = (String) session.getAttribute(SESSION_GAME_NAME_FIELD);
         if (gamename == null) {
-            throw new Exceptions.ResourceNotFoundException();
+            throw new Exceptions.ResourceNotFoundException(null);
         }
         List<Player> players = playerRepository.findPlayersByGameName(gamename);
         List<PlayerTerritory> territories = playerTerritoryRepository.findByGameName(gamename);

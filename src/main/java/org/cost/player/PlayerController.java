@@ -30,56 +30,21 @@ public class PlayerController {
     private PlayerRepository playerRepository;
     private PlayerNumberService playerNumberService;
     private GameRepository gameRepository;
+    private PlayerService playerService;
 
     @Autowired
-    public PlayerController(PlayerRepository playerRepository, PlayerNumberService playerNumberService, GameRepository gameRepository) {
+    public PlayerController(PlayerRepository playerRepository, PlayerNumberService playerNumberService, GameRepository gameRepository, PlayerService playerService) {
         this.playerRepository = playerRepository;
         this.playerNumberService = playerNumberService;
         this.gameRepository = gameRepository;
+        this.playerService = playerService;
     }
 
     @RequestMapping(path = "/players", method = RequestMethod.POST)
     public ResponseEntity<String> createPlayerForGame(@RequestBody CreatePlayerRequest createPlayerRequest, HttpSession httpSession) {
-        List<Player> players = playerRepository.findPlayersByGameName(createPlayerRequest.getGameName()); //will return one null if no players in game
-        String playerName = createPlayerRequest.getPlayerName();
-
-        if (gameRepository.findOne(createPlayerRequest.getGameName()) == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        if (gameRepository.findOne(createPlayerRequest.getGameName()).isStarted()) {
-            return new ResponseEntity<>("The game has already started.", HttpStatus.CONFLICT);
-        }
-
-        ResponseEntity<String> gameJoinError = findGameJoinError(players, playerName);
-        if (gameJoinError != null) {
-            return gameJoinError;
-        }
-
-        int nextPlayerNumber = playerNumberService.getNextPlayerNumber(playerNumberService.getNumberOfPlayersInGame(players));
-        playerRepository.save(Player.builder()
-                .gameName(createPlayerRequest.getGameName())
-                .name(createPlayerRequest.getPlayerName())
-                .playerNumber(nextPlayerNumber)
-                .remainingActions(3)
-                .build());
-        httpSession.setAttribute(SESSION_GAME_NAME_FIELD, createPlayerRequest.getGameName());
-        httpSession.setAttribute(SESSION_PLAYER_NUMBER_FIELD, nextPlayerNumber);
+        playerService.addPlayerToGame(createPlayerRequest, httpSession);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    private ResponseEntity<String> findGameJoinError(List<Player> players, String playerName) {
-        if (players.size() >= MAX_PLAYERS_ALLOWED_IN_GAME) {
-            return new ResponseEntity<>("Game Lobby is Full", HttpStatus.CONFLICT);
-        }
-        if (players.stream()
-                .filter(player -> player != null)
-                .anyMatch(player -> player.getName().equals(playerName))) {
-            return new ResponseEntity<>("Player name already taken", HttpStatus.CONFLICT);
-        }
-        return null;
-    }
-
 
     @RequestMapping(path = "/players/{playerNumber}", method = RequestMethod.GET)
     public SinglePlayerResponse getPlayer(@PathVariable int playerNumber, HttpSession session) {
@@ -114,7 +79,7 @@ public class PlayerController {
                     .build();
 
         } catch (NoSuchElementException e) {
-            throw new Exceptions.ResourceNotFoundException();
+            throw new Exceptions.ResourceNotFoundException(null);
         }
     }
 
@@ -122,7 +87,7 @@ public class PlayerController {
     public List<AllPlayersPlayerResponse> getPlayers(HttpSession session) {
         List<Player> players = playerRepository.findPlayersByGameName((String) session.getAttribute(SESSION_GAME_NAME_FIELD));
         if (players.isEmpty()) {
-            throw new Exceptions.ResourceNotFoundException();
+            throw new Exceptions.ResourceNotFoundException(null);
         }
 
         List<AllPlayersPlayerResponse> allPlayersPlayerResponses = new ArrayList<>();
@@ -145,15 +110,6 @@ public class PlayerController {
                         }
                 );
         return allPlayersPlayerResponses;
-    }
-
-    @Builder
-    @AllArgsConstructor
-    @Getter
-    @Setter
-    public static class CreatePlayerRequest {
-        private String gameName;
-        private String playerName;
     }
 
     @Builder

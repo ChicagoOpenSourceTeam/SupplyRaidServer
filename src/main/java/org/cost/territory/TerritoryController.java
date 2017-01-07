@@ -43,7 +43,7 @@ public class TerritoryController {
                 territoryId, (String) session.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD));
 
         if (requestedTerritory == null) {
-            throw new Exceptions.ResourceNotFoundException();
+            throw new Exceptions.ResourceNotFoundException(null);
         }
 
         PlayerForTerritoryResponse playerForTerritoryResponse = null;
