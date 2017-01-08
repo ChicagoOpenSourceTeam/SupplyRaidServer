@@ -21,9 +21,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Created by Swift on 1/7/17.
- */
 public class PlayerServiceTest {
 
     private GameDataService mockGameDataService;

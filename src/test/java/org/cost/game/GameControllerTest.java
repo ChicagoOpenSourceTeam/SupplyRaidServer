@@ -1,13 +1,13 @@
 package org.cost.game;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.cost.Exceptions;
 import org.cost.player.*;
 import org.cost.territory.Territory;
 import org.cost.territory.TerritoryRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -34,11 +34,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class GameControllerTest {
 
     private MockMvc mockMvc;
-    private GameRepository mockRepository;
 
+    private GameRepository mockRepository;
     TerritoryRepository mockTerritoryRepository;
     PlayerTerritoryRepository mockPlayerTerritoryRepository;
     private SuppliedStatusService mockSuppliedStatusService;
+    GameService mockGameService;
 
 
     @Before
@@ -47,56 +48,109 @@ public class GameControllerTest {
         mockTerritoryRepository = mock(TerritoryRepository.class);
         mockPlayerTerritoryRepository = mock(PlayerTerritoryRepository.class);
         mockSuppliedStatusService = mock(SuppliedStatusService.class);
-        GameController gameController = new GameController(mockRepository, mockTerritoryRepository, mockPlayerTerritoryRepository, mockSuppliedStatusService);
+        mockGameService = mock(GameService.class);
+        GameController gameController = new GameController(mockRepository, mockTerritoryRepository, mockPlayerTerritoryRepository, mockSuppliedStatusService, mockGameService);
         mockMvc = MockMvcBuilders.standaloneSetup(gameController).build();
     }
 
     @Test
-    public void createGame_returnsSuccess_andCreatesGame_whenGameDoesNotExist() throws Exception {
-        when(mockRepository.exists("Game Name")).thenReturn(false);
+    public void createGame_callsGameService_andReturnsOkStatus() throws Exception {
+        MockHttpSession mockHttpSession = new MockHttpSession();
         ObjectMapper objectMapper = new ObjectMapper();
-        GameController.GameRequest gameRequest = GameController.GameRequest.builder().gameName("Game Name").build();
+        CreateGameRequest gameRequest = CreateGameRequest.builder().gameName("gamename").build();
         String content = objectMapper.writeValueAsString(gameRequest);
 
-        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
+        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
                 .andExpect(status().isOk());
 
-        Game game = Game.builder().gameName("Game Name").playerTerritories(new ArrayList<>()).turnNumber(1).build();
-        verify(mockRepository).save(game);
+        verify(mockGameService).createGame(CreateGameRequest.builder().gameName("gamename").build());
     }
 
     @Test
-    public void createGame_returnsFailure_andDoesNotCreateGame_whenGameAlreadyExists() throws Exception {
-        when(mockRepository.exists("Game Name")).thenReturn(true);
+    public void createGame_callsGameService_andThrowsException() throws Exception {
+        doThrow(new Exceptions.ConflictException("Game Name Taken")).when(mockGameService).createGame(any());
         ObjectMapper objectMapper = new ObjectMapper();
-        GameController.GameRequest gameRequest = GameController.GameRequest.builder().gameName("Game Name").build();
+        CreateGameRequest gameRequest = CreateGameRequest.builder().gameName("gamename").build();
         String content = objectMapper.writeValueAsString(gameRequest);
 
-        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
+        MockHttpSession mockHttpSession = new MockHttpSession();
+
+        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content).session(mockHttpSession))
                 .andExpect(status().isConflict());
 
-        verify(mockRepository, times(0)).save(any(Game.class));
     }
 
-    @Test
-    public void deleteGame_returnsSuccess_andDeletesGame_whenGameExists() throws Exception {
-        when(mockRepository.exists("gamename")).thenReturn(true);
+//    @Test
+//    public void getGameEndpoint_callsService() throws Exception {
+//
+//    }
 
+    @Test   ///**This test fails, presently, due to incomplete refactor**
+    public void createGame_initializesPlayerTerritoriesOwnersToNull_onPost() throws Exception{
+        List<Territory> territoryList = new ArrayList<>(Arrays.asList(Territory.builder().territoryId(1L).build(),
+                Territory.builder().territoryId(2L).build()));
+
+        when(mockTerritoryRepository.findAll()).thenReturn(territoryList);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        CreateGameRequest gameRequest = CreateGameRequest.builder().gameName("gamename").build();
+        String content = objectMapper.writeValueAsString(gameRequest);
+
+        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
+                .andExpect(status().isOk());
+        ArgumentCaptor<Game> gameArgumentCaptor = ArgumentCaptor.forClass(Game.class);
+        verify(mockRepository).save(gameArgumentCaptor.capture());
+        Game game = gameArgumentCaptor.getValue();
+
+        assertThat(game.getPlayerTerritories().size()).isEqualTo(2);
+        assertThat(game.getPlayerTerritories().get(0).getGameName()).isEqualTo("gamename");
+        assertThat(game.getPlayerTerritories().get(0).getTerritoryId()).isIn(1L, 2L);
+        assertThat(game.getPlayerTerritories().get(0).getPlayerId()).isNull();
+    }
+
+
+
+
+    @Test
+    public void deleteGameEndpoint_callsGameService() throws Exception{
         mockMvc.perform(delete("/game/gamename"))
                 .andExpect(status().isOk());
 
-        verify(mockRepository).delete("gamename");
+        verify(mockGameService).deleteGame("gamename");
     }
 
     @Test
-    public void deleteGame_returnsResourceNotFound_whenGameDoesNotExist() throws Exception {
-        when(mockRepository.exists("gamename")).thenReturn(false);
+    public void deleteGame_callsGameService_andThrowsException() throws Exception{
+        doThrow(new Exceptions.ResourceNotFoundException("Game Not Found")).when(mockGameService).deleteGame(any());
 
         mockMvc.perform(delete("/game/gamename"))
-                .andExpect(status().isNotFound());
-
-        verify(mockRepository, times(0)).delete("gamename");
+                .andExpect(status().isConflict());
     }
+
+
+
+
+
+
+
+    @Test
+    public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
+        Game game = Game.builder().started(true).build();
+        when(mockRepository.findOne("gamename")).thenReturn(game);
+
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        String JSONResponse = mockMvc.perform(get("/game").contentType(MediaType.APPLICATION_JSON).session(session))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        JSONAssert.assertEquals(
+                "{\n" +
+                        "  \"gameStarted\": true\n" +
+                        "}", JSONResponse, JSONCompareMode.LENIENT);
+    }
+
+
+
 
     @Test
     public void startGameRequest_returnsOK_whenGameIsValid() throws Exception{
@@ -143,7 +197,6 @@ public class GameControllerTest {
                 .collect(Collectors.toList())).containsExactlyInAnyOrder(5L, 10L, 15L, 20L);
     }
 
-
     @Test
     public void startGameRequest_returnsNotFound_whenGameIsNull() throws Exception{
         when(mockRepository.findOne("gamename")).thenReturn(null);
@@ -167,6 +220,7 @@ public class GameControllerTest {
                 .andExpect(status().isConflict());
     }
 
+
     @Test
     public void startGameRequest_returnsConflict_whenGameAlreadyStarted() throws Exception {
         List<Player> players = Arrays.asList(new Player(), new Player());
@@ -179,23 +233,6 @@ public class GameControllerTest {
 
         mockMvc.perform(post("/game/start").contentType(MediaType.APPLICATION_JSON).session(session))
                 .andExpect(status().isConflict());
-    }
-
-
-    @Test
-    public void getGameEndpoint_returnsGameHasStarted_whenTrue() throws Exception{
-        Game game = Game.builder().started(true).build();
-        when(mockRepository.findOne("gamename")).thenReturn(game);
-
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
-        String JSONResponse = mockMvc.perform(get("/game").contentType(MediaType.APPLICATION_JSON).session(session))
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-
-        JSONAssert.assertEquals(
-                "{\n" +
-                        "  \"gameStarted\": true\n" +
-                        "}", JSONResponse, JSONCompareMode.LENIENT);
     }
 
     @Test
@@ -215,28 +252,6 @@ public class GameControllerTest {
     }
 
 
-    @Test
-    public void createGame_initializesPlayerTerritoriesOwnersToNull_onPost() throws Exception{
-        List<Territory> territoryList = new ArrayList<>(Arrays.asList(Territory.builder().territoryId(1L).build(),
-                Territory.builder().territoryId(2L).build()));
-
-        when(mockTerritoryRepository.findAll()).thenReturn(territoryList);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        GameController.GameRequest gameRequest = GameController.GameRequest.builder().gameName("gamename").build();
-        String content = objectMapper.writeValueAsString(gameRequest);
-
-        mockMvc.perform(post("/game").contentType(MediaType.APPLICATION_JSON).content(content))
-                .andExpect(status().isOk());
-        ArgumentCaptor<Game> gameArgumentCaptor = ArgumentCaptor.forClass(Game.class);
-        verify(mockRepository).save(gameArgumentCaptor.capture());
-        Game game = gameArgumentCaptor.getValue();
-
-        assertThat(game.getPlayerTerritories().size()).isEqualTo(2);
-        assertThat(game.getPlayerTerritories().get(0).getGameName()).isEqualTo("gamename");
-        assertThat(game.getPlayerTerritories().get(0).getTerritoryId()).isIn(1L, 2L);
-        assertThat(game.getPlayerTerritories().get(0).getPlayerId()).isNull();
-    }
 
     @Test
     public void startGame_assignsSupplyDepotsToPlayers_andPuts8TroopsOnDepots() throws Exception {

@@ -9,4 +9,14 @@ public class GameDataService {
     public Game findGameByGameName(String gameName) {
         return null;
     }
+
+    public boolean gameExistsWithName(String s) {
+        return false;
+    }
+
+    public void saveGame(Game expectedGame) {
+    }
+
+    public void deleteGame(String gameName) {
+    }
 }

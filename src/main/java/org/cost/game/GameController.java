@@ -19,48 +19,53 @@ public class GameController {
     private TerritoryRepository territoryRepository;
     private PlayerTerritoryRepository playerTerritoryRepository;
     private SuppliedStatusService suppliedStatusService;
+    private GameService gameService;
 
     @Autowired
-    public GameController(GameRepository gameRepository, TerritoryRepository territoryRepository, PlayerTerritoryRepository playerTerritoryRepository, SuppliedStatusService suppliedStatusService) {
+    public GameController(GameRepository gameRepository, TerritoryRepository territoryRepository, PlayerTerritoryRepository playerTerritoryRepository, SuppliedStatusService suppliedStatusService, GameService gameService ) {
         this.gameRepository = gameRepository;
         this.territoryRepository = territoryRepository;
         this.playerTerritoryRepository = playerTerritoryRepository;
         this.suppliedStatusService = suppliedStatusService;
+        this.gameService = gameService;
+    }
+
+    @RequestMapping(path = "/game", method = RequestMethod.GET)
+    public GameResponse getGame(HttpSession httpSession) {
+        String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
+        Game game = gameRepository.findOne(gameName);
+        if (game.isStarted()) {
+            return GameResponse.builder().gameStarted(true).build();
+        } else {
+            return GameResponse.builder().gameStarted(false).build();
+        }
     }
 
     @RequestMapping(path = "/game", method = RequestMethod.POST)
-    public ResponseEntity createGame(@RequestBody final GameRequest gameRequest) {
-        if (!gameRepository.exists(gameRequest.getGameName())) {
-            final ArrayList<PlayerTerritory> playerTerritories = new ArrayList<>();
-            territoryRepository.findAll()
-                    .forEach(territory ->{
-                        PlayerTerritory playerTerritory = PlayerTerritory.builder()
-                                .territoryId(territory.getTerritoryId())
-                                .gameName(gameRequest.getGameName())
-                                .territoryName(territory.getName())
-                                .playerId(null).build();
-                        playerTerritories.add(playerTerritory);
-                    });
-            Game game = Game.builder()
-                    .gameName(gameRequest.getGameName())
-                    .playerTerritories(playerTerritories)
-                    .turnNumber(1)
-                    .build();
-            gameRepository.save(game);
+    public ResponseEntity createGame(@RequestBody final CreateGameRequest gameRequest) {
+        try{
+            gameService.createGame(gameRequest);
             return new ResponseEntity(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.CONFLICT);
         }
-        return new ResponseEntity(HttpStatus.CONFLICT);
     }
+
 
 
     @RequestMapping(path = "/game/{gameName}", method = RequestMethod.DELETE)
     public ResponseEntity deleteGame(@PathVariable String gameName) {
-        if (!gameRepository.exists(gameName)) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        try {
+            gameService.deleteGame(gameName);
+            return new ResponseEntity(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.CONFLICT);
         }
-        gameRepository.delete(gameName);
-        return new ResponseEntity(HttpStatus.OK);
+
     }
+
+
+
 
     @RequestMapping(path = "/game/start", method = RequestMethod.POST)
     public ResponseEntity startGame(HttpSession httpSession) {
@@ -176,27 +181,7 @@ public class GameController {
                         }
                 );
     }
-    
-    @RequestMapping(path = "/game", method = RequestMethod.GET)
-    public GameResponse getGame(HttpSession httpSession) {
-        String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
-        Game game = gameRepository.findOne(gameName);
-        if (game.isStarted()) {
-            return GameResponse.builder().gameStarted(true).build();
-        } else {
-            return GameResponse.builder().gameStarted(false).build();
-        }
-    }
 
-
-
-    @Builder
-    @AllArgsConstructor
-    @Getter
-    @Setter
-    public static class GameRequest {
-        private String gameName;
-    }
 
     @Builder
     @AllArgsConstructor
