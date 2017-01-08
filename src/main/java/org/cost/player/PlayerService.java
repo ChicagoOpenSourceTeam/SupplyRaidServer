@@ -27,7 +27,7 @@ public class PlayerService {
         List<Player> players = playerDataService.findPlayersInGameByGameName(createPlayerRequest.getGameName()); //will return one null if no players in game
         String playerName = createPlayerRequest.getPlayerName();
 
-        Game game = gameDataService.findGameByGameName(createPlayerRequest.getGameName());
+        Game game = gameDataService.findGameByName(createPlayerRequest.getGameName());
         if (game == null) {
             throw new Exceptions.ResourceNotFoundException("Game not found");
         }

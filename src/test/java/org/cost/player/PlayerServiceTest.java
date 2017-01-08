@@ -5,7 +5,6 @@ import org.cost.game.Game;
 import org.cost.game.GameDataService;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PlayerServiceTest {
 
@@ -40,7 +38,7 @@ public class PlayerServiceTest {
     public void createPlayer_addsPlayerToGame() throws Exception {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player[]{null}));
         when(mockPlayerDataService.findPlayersInGameByGameName("Excalibur")).thenReturn(players);
-        when(mockGameDataService.findGameByGameName(anyString())).thenReturn(new Game());
+        when(mockGameDataService.findGameByName(anyString())).thenReturn(new Game());
         when(mockPlayerNumberService.getNumberOfPlayersInGame(players)).thenReturn(66);
         when(mockPlayerNumberService.getNextPlayerNumber(66)).thenReturn(999);
 
@@ -54,7 +52,7 @@ public class PlayerServiceTest {
     public void createPlayer_returnsConflict_whenFourOrMorePlayersInGame() throws Exception {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player(), new Player(), new Player(), new Player()));
         when(mockPlayerDataService.findPlayersInGameByGameName("Excalibur")).thenReturn(players);
-        when(mockGameDataService.findGameByGameName(anyString())).thenReturn(new Game());
+        when(mockGameDataService.findGameByName(anyString())).thenReturn(new Game());
 
         try {
             playerService.addPlayerToGame(CreatePlayerRequest.builder().gameName("Excalibur").playerName("zxmbies").build(), null);
@@ -70,7 +68,7 @@ public class PlayerServiceTest {
         Player player = Player.builder().name("zxmbies").build();
         ArrayList<Player> players = new ArrayList<>(Collections.singletonList(player));
         when(mockPlayerDataService.findPlayersInGameByGameName("Excalibur")).thenReturn(players);
-        when(mockGameDataService.findGameByGameName(anyString())).thenReturn(new Game());
+        when(mockGameDataService.findGameByName(anyString())).thenReturn(new Game());
 
         try {
             playerService.addPlayerToGame(CreatePlayerRequest.builder().gameName("Excalibur").playerName("zxmbies").build(), null);
@@ -83,7 +81,7 @@ public class PlayerServiceTest {
 
     @Test
     public void createPlayer_returnsResourceNotFound_whenGameDoesNotExist() throws Exception {
-        when(mockGameDataService.findGameByGameName(anyString())).thenReturn(null);
+        when(mockGameDataService.findGameByName(anyString())).thenReturn(null);
 
         try {
             playerService.addPlayerToGame(CreatePlayerRequest.builder().gameName("Excalibur").playerName("zxmbies").build(), null);
@@ -102,7 +100,7 @@ public class PlayerServiceTest {
                         Player.builder().name("a").build(),
                         Player.builder().name("b").build(),
                         Player.builder().name("c").build())));
-        when(mockGameDataService.findGameByGameName("Excalibur")).thenReturn(game);
+        when(mockGameDataService.findGameByName("Excalibur")).thenReturn(game);
 
         try {
             playerService.addPlayerToGame(CreatePlayerRequest.builder().gameName("Excalibur").playerName("zxmbies").build(), null);
@@ -117,7 +115,7 @@ public class PlayerServiceTest {
     public void postPlayer_savesGameToHttpSession() throws Exception {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player[]{null}));
         when(mockPlayerDataService.findPlayersInGameByGameName("Excalibur")).thenReturn(players);
-        when(mockGameDataService.findGameByGameName(anyString())).thenReturn(new Game());
+        when(mockGameDataService.findGameByName(anyString())).thenReturn(new Game());
 
         MockHttpSession httpSession = new MockHttpSession();
         playerService.addPlayerToGame(CreatePlayerRequest.builder().gameName("Excalibur").playerName("zxmbies").build(), httpSession);
@@ -129,7 +127,7 @@ public class PlayerServiceTest {
     public void postPlayer_savesPlayerNumberToHttpSession() throws Exception {
         ArrayList<Player> players = new ArrayList<>(Arrays.asList(new Player[]{null}));
         when(mockPlayerDataService.findPlayersInGameByGameName("Excalibur")).thenReturn(players);
-        when(mockGameDataService.findGameByGameName(anyString())).thenReturn(new Game());
+        when(mockGameDataService.findGameByName(anyString())).thenReturn(new Game());
         when(mockPlayerNumberService.getNumberOfPlayersInGame(players)).thenReturn(0);
         when(mockPlayerNumberService.getNextPlayerNumber(0)).thenReturn(1);
 

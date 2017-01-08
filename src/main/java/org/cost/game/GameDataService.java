@@ -6,8 +6,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class GameDataService {
 
-    public Game findGameByGameName(String gameName) {
-        return null;
+    private GameRepository gameRepository;
+
+    @Autowired
+    public GameDataService(GameRepository gameRepository) {
+        this.gameRepository = gameRepository;
+    }
+
+
+    public Game findGameByName(String gameName) {
+        return gameRepository.getOne(gameName);
     }
 
     public boolean gameExistsWithName(String s) {
@@ -18,5 +26,6 @@ public class GameDataService {
     }
 
     public void deleteGame(String gameName) {
+
     }
 }
