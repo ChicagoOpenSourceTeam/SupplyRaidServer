@@ -103,6 +103,7 @@ public class GameServiceTest {
 
 
 
+
     @Test
     public void deleteGame_returnsSuccess_andDeletesGame_whenGameExists() throws Exception {
         when(mockGameDataService.gameExistsWithName("gamename")).thenReturn(true);
@@ -128,7 +129,7 @@ public class GameServiceTest {
 
 
     @Test
-    public void startGameRequest_setsGameStarted() throws Exception{
+    public void startGame_setsGameStarted() throws Exception {
         List<Player> players = Arrays.asList(new Player(), new Player());
         Game game = Game.builder().gameName("gamename").players(players).build();
         when(mockGameDataService.findGameByName("gamename")).thenReturn(game);
@@ -144,11 +145,52 @@ public class GameServiceTest {
         assertTrue(game.isStarted());
     }
 
+    @Test
+    public void startGame_throwsGameNotFoundException_onNullGame() throws Exception {
+        when(mockGameDataService.findGameByName("gamename")).thenReturn(null);
 
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        try {
+            gameService.startGame(session);
+            fail("Expected Game Not Found Exception");
+        } catch (Exceptions.ResourceNotFoundException e) {
+            Assertions.assertThat(e.getClass()).isEqualTo(Exceptions.ResourceNotFoundException.class);
+            Assertions.assertThat(e.getMessage()).isEqualTo("Game Not Found");
+        }
+    }
 
+    @Test
+    public void startGame_throwsConflictException_onStartedGame() throws Exception {
+        Game game = Game.builder().gameName("gamename").started(true).build();
+        when(mockGameDataService.findGameByName("gamename")).thenReturn(game);
 
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        try {
+            gameService.startGame(session);
+            fail("Expected Game Already Started Exception");
+        } catch (Exceptions.ConflictException e) {
+            Assertions.assertThat(e.getClass()).isEqualTo(Exceptions.ConflictException.class);
+            Assertions.assertThat(e.getMessage()).isEqualTo("Game Already Started");
+        }
+    }
 
+    @Test
+    public void startGame_throwsConflictException_whenTooFewPlayers() throws Exception {
+        Game game = Game.builder().gameName("gamename").started(false).players(Arrays.asList(new Player())).build();
+        when(mockGameDataService.findGameByName("gamename")).thenReturn(game);
 
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(PlayerController.SESSION_GAME_NAME_FIELD, "gamename");
+        try {
+            gameService.startGame(session);
+            fail("Expected Too Few Players Exception");
+        } catch (Exceptions.ConflictException e) {
+            Assertions.assertThat(e.getClass()).isEqualTo(Exceptions.ConflictException.class);
+            Assertions.assertThat(e.getMessage()).isEqualTo("Invalid Game: Too Few Players");
+        }
+    }
 
 
     private List<Territory> generateTerritoriesForTest() {

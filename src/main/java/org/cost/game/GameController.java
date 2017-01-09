@@ -49,26 +49,12 @@ public class GameController {
 
 
 
-
     @RequestMapping(path = "/game/start", method = RequestMethod.POST)
     public ResponseEntity startGame(HttpSession httpSession) throws Exception{
         gameService.startGame(httpSession);
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    private void initializeTroopsForTerritoriesAdjacentToSupplyDepots(ArrayList<PlayerTerritory> savedPlayerTerritories,
-                                                                      Player player, StartingLocation startingLocation,
-                                                                      int troopsPerSurroundingTerritory) {
-        startingLocation.getSurroundingTerritories()
-                .forEach(
-                        surroundingTerritory -> {
-                            surroundingTerritory.setPlayerId(player.getPlayerId());
-                            surroundingTerritory.setTroops(troopsPerSurroundingTerritory);
-                            surroundingTerritory.setPlayer(player);
-                            savedPlayerTerritories.add(surroundingTerritory);
-                        }
-                );
-    }
 
 
 }

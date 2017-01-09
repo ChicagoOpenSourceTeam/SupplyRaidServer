@@ -18,6 +18,8 @@ public class GameService {
     PlayerDataService playerDataService;
     TerritoryDataService territoryDataService;
     PlayerTerritoryDataService playerTerritoryDataService;
+    SuppliedStatusService suppliedStatusService;
+
 
     @Autowired
     public GameService(GameDataService gameDataService, PlayerDataService playerDataService, TerritoryDataService territoryDataService, PlayerTerritoryDataService playerTerritoryDataService) {
@@ -59,7 +61,7 @@ public class GameService {
         gameDataService.deleteGame(gameName);
     }
 
-
+    /// should method be written for unrealistic scenarios, such as nonexistent session and game? //
     public GameResponse checkIfGameHasStarted(HttpSession httpSession) {
         String gameName = (String) httpSession.getAttribute(PlayerController.SESSION_GAME_NAME_FIELD);
         Game game = gameDataService.findGameByName(gameName);
@@ -78,100 +80,111 @@ public class GameService {
         if (game == null) {
             throw new Exceptions.ResourceNotFoundException("Game Not Found");
         }
+        if (game.isStarted()) {
+            throw new Exceptions.ConflictException("Game Already Started");
+        }
+
+        int numberOfPlayers = game.getPlayers().size();
+        if(numberOfPlayers < 2){
+            throw new Exceptions.ConflictException("Invalid Game: Too Few Players");
+        }
+
+
         //
-//        if (game.isStarted()) {
-//            return new ResponseEntity(HttpStatus.CONFLICT);
-//        }
-//
-//        int numberOfPlayers = game.getPlayers().size();
-//        if (numberOfPlayers >= 2) {
-//            List<Long> allTerritoryIds = new ArrayList<>();
-//
-//            List<PlayerTerritory> playerTerritories = playerTerritoryRepository.findByGameName(gameName);
-//
-//            List<StartingLocation> startingLocations = territoryRepository.findAll()
-//                    .stream()
-//                    .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
-//                    .map(territory ->  {
-//                        StartingLocation.StartingLocationBuilder builder = StartingLocation.builder();
-//                        builder.supplyDepot(playerTerritories.stream()
-//                                .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
-//                                .findFirst()
-//                                .get());
-//
-//                        builder.surroundingTerritories(
-//                                Arrays.asList(territory.getWest(), territory.getEast(), territory.getSouth(), territory.getNorth())
-//                                        .stream()
-//                                        .map(id -> playerTerritories
-//                                                .stream()
-//                                                .filter(pt -> pt.getTerritoryId().equals(id))
-//                                                .findFirst())
-//                                        .filter(Optional::isPresent)
-//                                        .map(Optional::get)
-//                                        .collect(Collectors.toList()));
-//
-//                        return builder.build();
-//
-//                    })
-//                    .collect(Collectors.toList());
-//
-//            long seed = System.nanoTime();
-//            Collections.shuffle(startingLocations, new Random(seed));
-//
-//            ArrayList<PlayerTerritory> savedPlayerTerritories = new ArrayList<>();
-//            for (Player player : game.getPlayers()) {
-//                StartingLocation startingLocation = startingLocations.remove(0);
-//                startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
-//                startingLocation.getSupplyDepot().setTroops(8);
-//                startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
-//                startingLocation.getSupplyDepot().setPlayer(player);
-//                savedPlayerTerritories.add(startingLocation.getSupplyDepot());
-//
-//                int numberOfSurroundingTerritories = (int)startingLocation.
-//                        getSurroundingTerritories().stream().filter(t -> t != null).count();
-//                int troopsPerSurroundingTerritory = 12/numberOfSurroundingTerritories;
-//
-//                initializeTroopsForTerritoriesAdjacentToSupplyDepots(savedPlayerTerritories, player,
-//                        startingLocation, troopsPerSurroundingTerritory);
-//
-//                startingLocation = startingLocations.remove(0);
-//                startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
-//                startingLocation.getSupplyDepot().setTroops(8);
-//                startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
-//                startingLocation.getSupplyDepot().setPlayer(player);
-//                savedPlayerTerritories.add(startingLocation.getSupplyDepot());
-//
-//                numberOfSurroundingTerritories = (int)startingLocation.
-//                        getSurroundingTerritories().stream().filter(t -> t != null).count();
-//                troopsPerSurroundingTerritory = 12/numberOfSurroundingTerritories;
-//
-//                initializeTroopsForTerritoriesAdjacentToSupplyDepots(savedPlayerTerritories, player,
-//                        startingLocation, troopsPerSurroundingTerritory);
-//            }
-//            playerTerritoryRepository.save(savedPlayerTerritories);
-//            suppliedStatusService.markUnsupplied();
-//            suppliedStatusService.markSupplied(
-//                    territoryRepository.findAll()
-//                            .stream()
-//                            .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
-//                            .map(territory ->
-//                                    playerTerritories.stream()
-//                                            .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
-//                                            .findFirst()
-//                                            .get()
-//                            ).collect(Collectors.toList()),
-//                    playerTerritoryRepository.findByGameName(gameName));
-//
-//            game.setStarted(true);
-//            gameRepository.save(game);
-//
-//            return new ResponseEntity(HttpStatus.OK);
-//        }
-//
-//
-//        return new ResponseEntity(HttpStatus.CONFLICT); //conflict is 409?
+        List<PlayerTerritory> playerTerritories = playerTerritoryDataService.getTerritoriesInGame(gameName);
+
+        List<StartingLocation> startingLocations = territoryDataService.getListOfTerritoriesOnMap()
+                .stream()
+                .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
+                .map(territory ->  {
+                    StartingLocation.StartingLocationBuilder buildOutFromSupplyDepot = StartingLocation.builder();
+                    buildOutFromSupplyDepot.supplyDepot(playerTerritories.stream()
+                            .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
+                            .findFirst()
+                            .get());
+
+                    buildOutFromSupplyDepot.surroundingTerritories(
+                            Arrays.asList(territory.getWest(), territory.getEast(), territory.getSouth(), territory.getNorth())
+                                    .stream()
+                                    .map(id -> playerTerritories
+                                            .stream()
+                                            .filter(pt -> pt.getTerritoryId().equals(id))
+                                            .findFirst())
+                                    .filter(Optional::isPresent)
+                                    .map(Optional::get)
+                                    .collect(Collectors.toList()));
+
+                    return buildOutFromSupplyDepot.build();
+
+                })
+                .collect(Collectors.toList());
+
+        long seed = System.nanoTime();
+        Collections.shuffle(startingLocations, new Random(seed));
+
+        ArrayList<PlayerTerritory> savedPlayerTerritories = new ArrayList<>();
+        for (Player player : game.getPlayers()) {
+            StartingLocation startingLocation = startingLocations.remove(0);
+            startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
+            startingLocation.getSupplyDepot().setTroops(8);
+            startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
+            startingLocation.getSupplyDepot().setPlayer(player);
+            savedPlayerTerritories.add(startingLocation.getSupplyDepot());
+
+            int numberOfSurroundingTerritories = (int)startingLocation.
+                    getSurroundingTerritories().stream().filter(t -> t != null).count();
+            int troopsPerSurroundingTerritory = 12/numberOfSurroundingTerritories;
+
+            initializeTroopsForTerritoriesAdjacentToSupplyDepots(savedPlayerTerritories, player,
+                    startingLocation, troopsPerSurroundingTerritory);
+
+            startingLocation = startingLocations.remove(0);
+            startingLocation.getSupplyDepot().setPlayerId(player.getPlayerId());
+            startingLocation.getSupplyDepot().setTroops(8);
+            startingLocation.getSupplyDepot().setSupplyDepotTerritory(true);
+            startingLocation.getSupplyDepot().setPlayer(player);
+            savedPlayerTerritories.add(startingLocation.getSupplyDepot());
+
+            numberOfSurroundingTerritories = (int)startingLocation.
+                    getSurroundingTerritories().stream().filter(t -> t != null).count();
+            troopsPerSurroundingTerritory = 12/numberOfSurroundingTerritories;
+
+            initializeTroopsForTerritoriesAdjacentToSupplyDepots(savedPlayerTerritories, player,
+                    startingLocation, troopsPerSurroundingTerritory);
+        }
+        playerTerritoryDataService.saveTerritory(savedPlayerTerritories);
+        suppliedStatusService.markUnsupplied();
+        suppliedStatusService.markSupplied(
+                territoryDataService.getListOfTerritoriesOnMap()
+                        .stream()
+                        .filter(territory -> territory.getSupply() != 0 && territory.getSupply() <= numberOfPlayers)
+                        .map(territory ->
+                                playerTerritories.stream()
+                                        .filter(pt -> pt.getTerritoryId().equals(territory.getTerritoryId()))
+                                        .findFirst()
+                                        .get()
+                        ).collect(Collectors.toList()),
+                playerTerritoryDataService.findByGameName(gameName));
 
         game.setStarted(true);
         gameDataService.saveGame(game);
+    }
+
+
+
+
+
+    private void initializeTroopsForTerritoriesAdjacentToSupplyDepots(ArrayList<PlayerTerritory> savedPlayerTerritories,
+                                                                      Player player, StartingLocation startingLocation,
+                                                                      int troopsPerSurroundingTerritory) {
+        startingLocation.getSurroundingTerritories()
+                .forEach(
+                        surroundingTerritory -> {
+                            surroundingTerritory.setPlayerId(player.getPlayerId());
+                            surroundingTerritory.setTroops(troopsPerSurroundingTerritory);
+                            surroundingTerritory.setPlayer(player);
+                            savedPlayerTerritories.add(surroundingTerritory);
+                        }
+                );
     }
 }
